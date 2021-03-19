@@ -109,15 +109,10 @@
 
 
 /cvid {
-  % There must be a better way
+  % There is a better way!
+  % Executable arrays are just arrays with executable names inside
   % (Test) -> {Test}
-  dup length 2 add
-  string dup 
-  dup length 1 sub (}) putinterval
-  dup 0 ({) putinterval
-  dup 3 1 roll
-  exch 1 exch putinterval
-  cvx exec
+  1 array dup 0 4 -1 roll cvn cvx put cvx
 } def
 
 /mkobj {

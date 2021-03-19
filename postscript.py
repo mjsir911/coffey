@@ -250,7 +250,22 @@ class Runner(list):
 
     func_showpage = noop(0)
 
-    func_cvx = noop(0)
+    @stackify
+    @staticmethod
+    def func_cvx(obj):
+        if isinstance(obj, list):
+            return Block(obj)
+        return obj
+
+    @stackify
+    @staticmethod
+    def func_array(l):
+        return [None] * l
+
+    @stackify
+    @staticmethod
+    def func_cvn(s):
+        return Name(s.decode())
 
     #
     # Strings
