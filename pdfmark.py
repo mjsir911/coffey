@@ -10,25 +10,47 @@ from sys import argv
 import postscript
 
 
+r = PdfReader(argv[1] if len(argv) > 1 else 'dor-2020-inc-form-1-nrpy.pdf')
+
+
+ZaDb = r.Root.AcroForm.DR.Font.ZaDb
+
 moon_notes = IndirectPdfDict({
     PdfName('BBox'): [0, 0, 13, 13],
     PdfName('Resources'): PdfDict({
         PdfName('Font'): PdfDict({
-            PdfName('ZaDb'): PdfName('ZaDb')
+            PdfName('ZaDb'): ZaDb
         }),
         PdfName('ProcSet'): [PdfName('PDF'), PdfName('Text')],
     }),
 })
-moon_notes.stream = '0 G 1 w 0.5 0.5 12 12 re s q 1 1 11 11 re W n BT /ZaDb 9.3262 Tf 0 g  1 0 0 1 2.9515 3.2732 Tm (n) Tj ET Q'
+# Not sure how to get this...
+moon_notes.stream = '/ZaDb 14 Tf 0 g  1 0 0 1 1  2.5  Tm (l) Tj ET Q'
+
+moon_notes_off = IndirectPdfDict({
+    PdfName('BBox'): [0, 0, 13, 13],
+    PdfName('Resources'): PdfDict({
+        PdfName('ProcSet'): [PdfName('PDF')],
+    }),
+})
+moon_notes_off.stream = ''
 
 
-def translate(d):
-    if d == 'MoonNotes':
-        return moon_notes
+def translate(d, objdict):
+    if isinstance(d, postscript.Block):
+        objname, = d
+        return objdict.setdefault(d, IndirectPdfDict())
+        # assert len(d) == 1
+        # and d[0] == 'MoonNotes':
+        # return moon_notes
     if isinstance(d, dict):
-        return PdfDict({translate(k): translate(v) for k, v in d.items()})
+        return PdfDict({translate(k, objdict): translate(v, objdict) for k, v in d.items()})
+    if isinstance(d, list):
+        return [translate(item, objdict) for item in d]
     if isinstance(d, postscript.Name):
         return PdfName(d)
+    if isinstance(d, bytearray):
+        return d.decode()
     return d
 
 
@@ -38,26 +60,39 @@ class PdfmarkRunner(postscript.Runner):
         self.annots = []
         self.page = 1
 
-        self.objects = {}
+        self.objects = {'MoonNotes': moon_notes, 'MoonNotesOff': moon_notes_off}
 
     def pdfmark_OBJ(self):
         d = self.func_hex_3E3E()
-        print(d)
 
     def pdfmark_PUT(self):
-        [obj], stuff = self.func_unmark()
-        print(obj)
+        ref, stuff = self.func_unmark()
+        obj = self.objects.setdefault(ref, IndirectPdfDict())
+        if isinstance(stuff, bytearray):
+            obj.stream = stuff.decode()
+        else:
+            obj.update(translate(stuff, self.objects))
 
     def pdfmark_CLOSE(self):
         self.run(["cleartomark"])
 
     def pdfmark_ANN(self):
-        d = translate(self.func_hex_3E3E())
+        annot = self.func_hex_3E3E()
+        ref = annot.pop(postscript.Name('_objdef'), None)
+        d = translate(annot, self.objects)
+
+        if ref:
+            if ref in self.objects:
+                self.objects[ref].update(d)
+            else:
+                self.objects[ref] = d
+            d = self.objects[ref]
+
         d.indirect = True
         d.Type = PdfName('Annot')
         if '/SrcPg' not in d:
             d.SrcPg = self.page
-        if d.T == 'age_65':
+        if d.T == 'RBF9':
             print(d)
         self.annots.append(d)
 
@@ -70,12 +105,12 @@ class PdfmarkRunner(postscript.Runner):
 
 
 template = open('dor-2020-inc-form-1-nrpy-form-overlay.ps').read()
-pdfmarks = PdfmarkRunner()(template).annots
-
-r = PdfReader(argv[1] if len(argv) > 1 else 'dor-2020-inc-form-1-nrpy.pdf')
+runner = PdfmarkRunner()
+pdfmarks = runner(template).annots
 
 # self.pdfmarks = PdfArray()
 # self.pdfmarks.indirect = True
+
 
 for mark in pdfmarks:
     page = r.pages[mark.SrcPg - 1]
@@ -83,6 +118,7 @@ for mark in pdfmarks:
         page.Annots = PdfArray()
     page.Annots.append(mark)
     r.Root.AcroForm.Fields.append(mark)
+
 
 # for page, annots in zip(r.pages, pdfmarks):
 #     page.Annots = annots

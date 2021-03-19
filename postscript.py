@@ -17,12 +17,12 @@ class PostscriptFunction:
 
 class Name(str):
     def __repr__(self):
-        return f'{type(self).__name__}({super().__repr__()})'
+        return '/' + super().__str__()
 
 
-class Block(list):
+class Block(tuple):
     def __repr__(self):
-        return f'{type(self).__name__}({super().__repr__()})'
+        return f'{{{" ".join(str(item) for item in self)}}}'
 
 
 class PostscriptOtherFunction(PostscriptFunction):
@@ -89,6 +89,9 @@ class Runner(list):
             return func(*args)
         return wrapper
 
+    #
+    # Arithmetic
+
     @stackify
     @staticmethod
     def func_add(a, b):
@@ -104,6 +107,19 @@ class Runner(list):
     def func_bitshift(a, b):
         return a << b
 
+    #
+    # Constants
+    @staticmethod
+    def func_true():
+        return True
+
+    @staticmethod
+    def func_false():
+        return False
+
+    #
+    # Stack helpers
+
     @stackify
     def func_roll(self, n: int, j: int):
         """roll
@@ -114,29 +130,44 @@ class Runner(list):
 
         self.extend(buf[-j:] + buf[:-j])
 
+    func_pop = noop(1)
+
     @stackify
     @staticmethod
-    def func_put(d: dict, key, val):
-        d[key] = val
+    def func_dup(a):
+        return a, a
+
+    #
+    # debugging
 
     @stackify
     @staticmethod
     def func_hex_3D(a):
+        " = "
         print(a)
 
-    def func_counttomark(self):
-        return self[::-1].index(markStart)
-
-    def func_globaldict(self):
-        return self.globaldict
-
-    def func_systemdict(self):
-        return self.systemdict
-
-    func_pop = noop(1)
+    @stackify
+    @staticmethod
+    def func_hex_3D3D(a):
+        " == "
+        print(a)
 
     def func_stack(self):
         print(self)
+
+    def func_pstack(self):
+        print(self)
+
+    #
+    # IO
+
+    @stackify
+    @staticmethod
+    def func_file(fname, mode):
+        return open(fname.decode(), mode.decode())
+
+    #
+    # Mark functions
 
     @staticmethod
     def func_mark():
@@ -151,20 +182,105 @@ class Runner(list):
         > /] { unmark } def
         """
         count = self.func_counttomark()
+        if count == 0:
+            self.pop()
+            return []
         ret = self[-count:]
         self[-count - 1:] = []
         return ret
+
+    def func_counttomark(self):
+        return self[::-1].index(markStart)
 
     def func_hex_3E3E(self):
         " >> "
         l = iter(self.func_unmark())
         return dict(zip(l, l))
 
+    #
+    # Dictionary functions
+
+    def func_globaldict(self):
+        return self.globaldict
+
+    def func_systemdict(self):
+        return self.systemdict
+
+    @stackify
+    @staticmethod
+    def func_put(d: dict, key, val):
+        d[key] = val
+
+    @stackify
+    def func_forall(self, obj, proc):
+        if isinstance(obj, list):
+            for item in obj:
+                self.append(item)
+                self.run(proc)
+        elif isinstance(obj, dict):
+            for kv in obj.items():
+                self.extend(kv)
+                self.run(proc)
+        else:
+            raise
+
+    @stackify
+    def func_copy(self, d1, d2):
+        d2.update(d1)
+        return d2
+
+    # Postscript specific stuff
+
+    @stackify
+    def func_exec(self, obj):
+        """
+        > /run { (r) file exec } def
+        """
+        if isinstance(obj, bytearray):
+            return self.runfile(obj.decode())
+        return self.runfile(obj.read())
+
     def func_quit(self):
         raise QuitException()
 
-    func_run = noop(1)
+    @staticmethod
+    def func_rand():
+        import random
+        return random.randint(0, 1 << 31)
+
     func_showpage = noop(0)
+
+    func_cvx = noop(0)
+
+    #
+    # Strings
+    # strings are the one thing that ps doesn't map to python 1:1
+    # have allocations
+
+    @stackify
+    @staticmethod
+    def func_string(l):
+        """
+        Allocate string of length l
+        """
+        return bytearray(l)
+
+    @stackify
+    @staticmethod
+    def func_cvs(obj, buf):
+        s = str(obj).encode()
+        buf[:len(s)] = s
+        return bytearray(s)
+
+    @stackify
+    @staticmethod
+    def func_length(obj):
+        return len(obj)
+
+    @stackify
+    @staticmethod
+    def func_putinterval(outerstr, offset, innerstr):
+        outerstr[offset:offset + len(innerstr)] = innerstr
 
     def dispatch_func(self, funcname):
         if funcname not in self.systemdict:
@@ -178,36 +294,66 @@ class Runner(list):
         self.extend(ret)
         return ret
 
+    def do_block(self, token):
+        acc = []
+        while True:
+            if token.startswith('{'):
+                token = yield from self.do_block(token[1:])
+            elif token.endswith('}'):
+                token = token[:-1]
+                if token != '':
+                    acc.append(token)
+                break
+            if token != '':
+                acc.append(token)
+            token = yield
+        return Block(acc)
+
     def tokenize(self):
         while True:
             token = yield
-            if token.isdigit():
+            if isinstance(token, Block):
+                # Do nothing
+                self.append(token)
+            elif token.isdigit() or token.startswith('-') and token[1:].isdigit():
                 self.append(int(token))
             elif token.startswith('/'):
                 self.append(Name(token[1:]))
             elif token.startswith('('):
+                depth = 1
                 acc = token
                 if not token.endswith(')'):
-                    while True:
+                    while depth > 0:
                         token = yield
                         acc += ' ' + token
+                        if token.startswith('('):
+                            depth += 1
                         if token.endswith(')'):
-                            break
-                self.append(acc[1:-1])
-            elif token == '{':
-                acc = Block()
-                while True:
-                    token = yield
-                    if token == '}':
-                        break
-                    acc.append(token)
-                self.append(acc)
+                            depth -= 1
+                self.append(bytearray(acc[1:-1].encode()))
+            elif token.startswith('{'):
+                b = yield from self.do_block(token[1:])
+                self.append(b)
             else:
                 self.dispatch_func(token)
 
     @staticmethod
     def lex(line: str):
-        return line.split()
+        for word in line.split():
+            if word.startswith('[') and len(word) > 1:
+                yield word[:1]
+                yield word[1:]
+            elif word.endswith(']') and len(word) > 1 and word[-2] != '/':
+                yield word[:-1]
+                yield word[-1:]
+            elif word.startswith('<<') and len(word) > 2:
+                yield word[0:2]
+                yield word[2:]
+            elif word.endswith('>>') and len(word) > 2 and word[-3] != '/':
+                yield word[:-2]
+                yield word[-2:]
+            else:
+                yield word
 
     def prelude(self):
         from inspect import getdoc, getmembers
@@ -226,15 +372,22 @@ class Runner(list):
         for word in stream:
             tokenizer.send(word)
 
+    def runfile(self, lines):
+        tokenizer = self.tokenize()
+        next(tokenizer)
+
+        for line in lines.splitlines():
+            for word in line.split():
+                if word == '%':
+                    break
+                tokenizer.send(word)
+
     def __call__(self, code: str):
-        code = [word for line in code.split('\n')
-                if not line.strip().startswith('%')
-                for word in self.lex(line)]
-        for word in code:
-            try:
-                self.tokenizer.send(word)
-            except QuitException:
-                break
+        try:
+            self.runfile(code)
+        except QuitException:
+            if self:
+                print(f'warning, stack not empty on quit: {self}')
 
         return self
 

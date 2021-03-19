@@ -1,0 +1,128 @@
+(pdfmark-prelude.ps) run
+
+% Taken from http://math.uakron.edu/~dpstory/tutorial/pdfmarks/acroform.tex
+
+/FfReadOnly    {1 }                       def % bit  1: Read only field
+/FfRequired    {1 1 bitshift }            def % bit  2: Required field (Submit)
+/FfNoExport    {1 2 bitshift }            def % bit  3: Used with Submit Action
+/FfMultiLine   {1 12 bitshift }           def % bit 13: For Multiline text field
+/FfPassword    {1 13 bitshift }           def % bit 14: Password field
+/FfNoNullState {1 14 bitshift }           def % bit 15: Used with Radio Buttons
+/FfRadio       {1 15 bitshift }           def % bit 16: Radio Button Flag
+/FfPushButton  {1 16 bitshift }           def % bit 17: Push Button Flag
+/FfPopUpList   {1 17 bitshift }           def % bit 18: Pop up List Flag
+/FfEdit        {1 18 bitshift }           def % bit 19: Edit/NoEdit
+/FfSort        {1 19 bitshift }           def % bit 20: Sort List
+/FfComboBox    {\FfPopUpList \FfEdit or } def % Combo = Edit PopUpList
+
+% More, from https://www.adobe.com/content/dam/acom/en/devnet/acrobat/pdfs/pdf_reference_1-7.pdf
+
+/FfFileSelect      {1 21 1 sub bitshift} def
+/FfDoNotSpellCheck {1 23 1 sub bitshift} def
+/FfDoNotScroll     {1 24 1 sub bitshift} def
+/FfComb            {1 25 1 sub bitshift} def
+/FfRichText        {1 26 1 sub bitshift} def
+
+
+/QRightJustified {2} def
+
+
+/deepmerge { copy } def
+
+[ /_objdef { MoonNotes } /type /stream /OBJ pdfmark
+[ { MoonNotes } << /BBox [ 0 0 13 13 ] /Resources << /Font << /ZaDb { ZaDb } >> /ProcSet [ /PDF /Text ] >> >> /PUT pdfmark
+[ { MoonNotes } 
+  % No idea how this stream is created manually, taken from forms.pdf
+  % what does the q do?
+  % re is resize
+  % Tf = selectfont = fontsize
+  % Tm = moveto = corner maybe?
+  (q 1 1 11 11 re W n BT /ZaDb 9.3262 Tf 0 g  1 0 0 1 2.9515 3.2732 Tm (l) Tj ET Q)
+  /PUT pdfmark
+[ { MoonNotes } /CLOSE pdfmark
+
+[ /_objdef { MoonNotesOff } /type /stream /OBJ pdfmark
+[ { MoonNotesOff } << /BBox [ 0 0 13 13 ] /Resources << /Font << /ZaDb { ZaDb } >> /ProcSet [ /PDF /Text ] >> >> /PUT pdfmark
+[ { MoonNotesOff } 
+  % G = darkness
+  % w = width
+  % re = resize, 0.5 0.5 centers it, 12 scales it by 12
+  % s = draw square
+  % (0 G 0 w 0.5 0.5 12 12 re s)
+  % I want empty to be empty
+  ()
+  /PUT pdfmark
+[ { MoonNotesOff } /CLOSE pdfmark
+
+  
+/circlebox { <<
+  /BS << /S /S /W 1 >>
+  /DA ( /ZaDb 0 Tf 0 g )
+  /AP << /N << /Off {MoonNotesOff} /Yes {MoonNotes} >> >>
+  /F 4
+  /FT /Btn
+  /AS /Off
+  /H /P
+  /MK << /BC [  0 0 0  ] /CA (n) >>
+  /Subtype /Widget
+>> deepmerge } def
+
+/textfield { <<
+  /DA ( /Helv 0 Tf 0 g )
+  /Subtype /Widget
+  /FT /Tx
+  /F 4
+  bd
+  >> deepmerge } def
+
+/combtext { <<
+  /MaxLen counttomark 2 add -1 roll
+  /Ff FfComb
+>> deepmerge } def
+
+/label {
+  exch dup 3 -1 roll
+  /T exch put
+} def
+
+/fbox { % dict x y w h fbox dict
+  5 -1 roll dup 6 2 roll
+
+  [ 
+    % x & w
+    5 -1 roll dup 
+    5 -1 roll add
+
+    % y & h
+    5 -1 roll dup
+    6 -1 roll sub
+
+    3 -1 roll exch
+  ]
+
+  /Rect exch put
+} def
+
+/dict2pdfmark {
+  { } forall
+} def
+
+
+/cvid {
+  % There must be a better way
+  % (Test) -> {Test}
+  dup length 2 add
+  string dup 
+  dup length 1 sub (}) putinterval
+  dup 0 ({) putinterval
+  dup 3 1 roll
+  exch 1 exch putinterval
+  cvx exec
+} def
+
+/mkobj {
+  % Want to prefix this if possible
+  /_objdef 
+  rand 10 string cvs cvid
+  dup counttomark 1 add 1 roll
+} def

@@ -1,6 +1,6 @@
-<http://math.uakron.edu/~dpstory/tutorial/pdfmarks/forms.pdf>
-<https://www.adobe.com/content/dam/acom/en/devnet/acrobat/pdfs/pdfmark_reference.pdf>
-<https://www.adobe.com/content/dam/acom/en/devnet/acrobat/pdfs/pdf_reference_1-7.pdf>
+- <http://math.uakron.edu/~dpstory/tutorial/pdfmarks/forms.pdf>
+- <https://www.adobe.com/content/dam/acom/en/devnet/acrobat/pdfs/pdfmark_reference.pdf>
+- <https://www.adobe.com/content/dam/acom/en/devnet/acrobat/pdfs/pdf_reference_1-7.pdf>
 
 Ghostscript didn't work unfortunately:
 - strips some important decorations from a pdf (the red outlining for fields)
@@ -12,5 +12,11 @@ ghostscript ever decides to work better.
 
 `mupdf` doesn't respect text field justification (`/Q`) if the comb form field
 is used ( `/Ff 1 24 bitshift` )
+
+Tools used for testing:
+- `qpdf`
+- poppler stuff like `pdffont`
+- mupdf
+- chrome
 
 Built while listening to [inabakumori](https://www.youtube.com/channel/UCNElM45JypxqAR73RoUQ10g)
