@@ -1,0 +1,76 @@
+% javascript conversion shit
+/operators <<
+  /mul ( * )
+  /add ( + )
+>> def
+
+
+/normalize { % returns a string
+	dup operators exch known {
+		operators exch get pushstr
+	} {
+	dup type /nametype eq {
+		pop (something) pushstr
+	} {
+	dup type /arraytype eq {
+			('\)) exch
+			0 get dup length string cvs 
+			(this.getField\(')
+			5 -2 roll 
+			3 -1 roll pushstr
+			3 -1 roll pushstr
+			3 -1 roll pushstr
+	} {
+	dup type /integertype eq {
+		exch dup 3 1 roll cvs length restinterval
+	} {
+		pushstr
+	} ifelse
+	} ifelse
+	} ifelse
+	} ifelse
+} def
+
+/restinterval { % str start restinterval (substr to end)
+	exch
+	dup length
+	3 -1 roll dup
+	3 1 roll sub
+	getinterval
+} def
+
+/pushstr { % buf newstr pushstr shiftbuf
+	dup length
+	3 -1 roll dup
+	4 -1 roll
+	0 exch putinterval
+	exch restinterval
+} def
+
+/shrink {
+	1 string search pop
+} def
+
+
+/autocalc { % {code} autocalc (javascript code)
+  {
+		dup operators exch known {
+		3 -1 roll
+		100 string dup % hope
+		(\() pushstr
+		3 -1 roll normalize
+		3 -1 roll normalize
+		3 -1 roll normalize
+		(\)) pushstr
+		length exch dup length 3 -1 roll sub 
+		0 exch getinterval
+    } if
+  } forall
+	dup length
+	(event.target.value = )
+	dup length
+	3 -1 roll add string dup
+	3 -1 roll pushstr
+	3 -1 roll pushstr
+	pop
+} def
