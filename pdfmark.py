@@ -13,6 +13,26 @@ import postscript
 r = PdfReader(argv[1] if len(argv) > 1 else 'dor-2020-inc-form-1-nrpy.pdf')
 
 
+def translate(d, objdict):
+    if isinstance(d, postscript.Block):
+        objname, = d
+        return objdict.setdefault(d, IndirectPdfDict())
+        # assert len(d) == 1
+        # and d[0] == 'MoonNotes':
+        # return moon_notes
+    elif isinstance(d, dict):
+        return PdfDict({translate(k, objdict): translate(v, objdict) for k, v in d.items()})
+    elif isinstance(d, list):
+        return [translate(item, objdict) for item in d]
+    elif isinstance(d, postscript.Name):
+        return PdfName(d)
+    elif isinstance(d, bytearray):
+        return d.decode()
+    elif isinstance(d, bool):
+        # Can get rid of this once pdfrw#220 comes through
+        return PdfObject('true') if d else PdfObject('false')
+    return d
+
 ZaDb = r.Root.AcroForm.DR.Font.ZaDb
 
 moon_notes = IndirectPdfDict({
@@ -35,43 +55,50 @@ moon_notes_off = IndirectPdfDict({
 })
 moon_notes_off.stream = ''
 
-
-def translate(d, objdict):
-    if isinstance(d, postscript.Block):
-        objname, = d
-        return objdict.setdefault(d, IndirectPdfDict())
-        # assert len(d) == 1
-        # and d[0] == 'MoonNotes':
-        # return moon_notes
-    if isinstance(d, dict):
-        return PdfDict({translate(k, objdict): translate(v, objdict) for k, v in d.items()})
-    if isinstance(d, list):
-        return [translate(item, objdict) for item in d]
-    if isinstance(d, postscript.Name):
-        return PdfName(d)
-    if isinstance(d, bytearray):
-        return d.decode()
-    return d
-
-
 class PdfmarkRunner(postscript.Runner):
-    def __init__(self, *args):
+    def __init__(self, catalog, *args):
         super().__init__(*args)
         self.annots = []
         self.page = 1
 
-        self.objects = {'MoonNotes': moon_notes, 'MoonNotesOff': moon_notes_off}
+        self.objects = {
+            postscript.Block(['Catalog']): catalog,
+            postscript.Block(['ZaDb']): ZaDb,
+            # postscript.Block(['MoonNotes']): moon_notes,
+            # postscript.Block(['MoonNotesOff']): moon_notes_off,
+        }
 
     def pdfmark_OBJ(self):
         d = self.func_hex_3E3E()
+        ref = d.pop(postscript.Name('_objdef'))
+        t = str(d.pop(postscript.Name('type')))
+        if t == 'dict' or t == 'stream':
+            self.objects.setdefault(ref, IndirectPdfDict())
+        elif t == 'array':
+            default = PdfArray()
+            default.indirect = True
+            self.objects.setdefault(ref, default)
+        else:
+            raise Exception(t)
+
 
     def pdfmark_PUT(self):
         ref, stuff = self.func_unmark()
         obj = self.objects.setdefault(ref, IndirectPdfDict())
         if isinstance(stuff, bytearray):
             obj.stream = stuff.decode()
-        else:
+        elif isinstance(obj, dict):
             obj.update(translate(stuff, self.objects))
+        else:
+            raise Exception(stuff)
+
+    def pdfmark_APPEND(self):
+        ref, stuff = self.func_unmark()
+        obj = self.objects.setdefault(ref, IndirectPdfDict())
+        if isinstance(obj, list):
+            obj.append(translate(stuff, self.objects))
+        else:
+            raise Exception(stuff)
 
     def pdfmark_CLOSE(self):
         self.run(["cleartomark"])
@@ -92,7 +119,7 @@ class PdfmarkRunner(postscript.Runner):
         d.Type = PdfName('Annot')
         if '/SrcPg' not in d:
             d.SrcPg = self.page
-        if d.T == 'RBF9':
+        if d.T == 'RaBF9':
             print(d)
         self.annots.append(d)
 
@@ -105,59 +132,21 @@ class PdfmarkRunner(postscript.Runner):
 
 
 template = open('dor-2020-inc-form-1-nrpy-form-overlay.ps').read()
-runner = PdfmarkRunner()
+runner = PdfmarkRunner(r.Root)
 pdfmarks = runner(template).annots
 
 # self.pdfmarks = PdfArray()
 # self.pdfmarks.indirect = True
-
 
 for mark in pdfmarks:
     page = r.pages[mark.SrcPg - 1]
     if page.Annots is None:
         page.Annots = PdfArray()
     page.Annots.append(mark)
-    r.Root.AcroForm.Fields.append(mark)
+    r.Root.AcroForm.Fields.append(mark)  # Need to migrate this to the lib eventually
 
 
 # for page, annots in zip(r.pages, pdfmarks):
 #     page.Annots = annots
 
 PdfWriter('out.pdf', trailer=r).write()
-
-# def make_js_action(js):
-#     action = PdfDict()
-#     action.S = PdfName.JavaScript
-#     action.JS = js
-#     return action
-#
-#
-# def append_js_to_pdf(file_name):
-#     pdf_writer = PdfWriter()
-#     pdf_reader = PdfReader(file_name)
-#     try:
-#         js = open(sys.argv[1]).read()
-#     except:
-#         js = "this.getField('residency_duration_ratio').value = (event.value / 365).toString().split('.')[1];"
-#     for page_index in pdf_reader.pages:
-#         page = page_index
-#         page.Type = PdfName.Page
-#         try:
-#             for field in page.Annots:
-#                 field.update(PdfDict(AA=PdfDict(V=make_js_action(js))))
-#         except:
-#             pass
-#         # page.AA = PdfDict()
-#         # page.AA.O = make_js_action(js)
-#         pdf_writer.addpage(page)
-#     with open('test.pdf', 'wb') as file:
-#         pdf_writer.write(file)
-#
-#
-# if __name__ == "__main__":
-#     # javascript_added = append_js_to_pdf("/home/msirabella/Downloads/forms.pdf")
-#     javascript_added = append_js_to_pdf("out.pdf")
-#     # javascript_added = append_js_to_pdf("/home/msirabella/Downloads/forms.pdf")
-
-
-

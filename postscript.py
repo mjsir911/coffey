@@ -144,12 +144,16 @@ class Runner(list):
     @staticmethod
     def func_hex_3D(a):
         " = "
+        if isinstance(a, bytearray):
+            a = a.decode()
         print(a)
 
     @stackify
     @staticmethod
     def func_hex_3D3D(a):
         " == "
+        if isinstance(a, bytearray):
+            a = a.decode()
         print(a)
 
     def func_stack(self):
@@ -157,6 +161,9 @@ class Runner(list):
 
     def func_pstack(self):
         print(self)
+
+    def func_breakpoint(self):
+        breakpoint()
 
     #
     # IO
@@ -208,12 +215,12 @@ class Runner(list):
 
     @stackify
     @staticmethod
-    def func_put(d: dict, key, val):
+    def func_put(d: Union[dict, list], key, val):
         d[key] = val
 
     @stackify
     def func_forall(self, obj, proc):
-        if isinstance(obj, list):
+        if isinstance(obj, (list, tuple)):
             for item in obj:
                 self.append(item)
                 self.run(proc)
@@ -222,7 +229,7 @@ class Runner(list):
                 self.extend(kv)
                 self.run(proc)
         else:
-            raise
+            raise Exception(type(obj))
 
     @stackify
     def func_copy(self, d1, d2):
@@ -304,7 +311,7 @@ class Runner(list):
         ret = func()
         if ret is None:
             return
-        if not isinstance(ret, tuple):
+        if type(ret) != tuple:
             ret = (ret,)
         self.extend(ret)
         return ret
@@ -338,8 +345,10 @@ class Runner(list):
                 depth = 1
                 acc = token
                 if not token.endswith(')'):
+                    # This is currently very broken
                     while depth > 0:
                         token = yield
+                        token = token.replace('\\', '')
                         acc += ' ' + token
                         if token.startswith('('):
                             depth += 1

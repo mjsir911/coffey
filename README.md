@@ -3,6 +3,8 @@
 - <http://math.uakron.edu/~dpstory/tutorial/pdfmarks/forms.pdf>
 - <https://www.adobe.com/content/dam/acom/en/devnet/acrobat/pdfs/pdfmark_reference.pdf>
 - <https://www.adobe.com/content/dam/acom/en/devnet/acrobat/pdfs/pdf_reference_1-7.pdf>
+- <https://www.adobe.com/content/dam/acom/en/devnet/acrobat/pdfs/js_api_reference.pdf>
+- <https://www.tinaja.com/glib/jpg2pdf.pdf>
 
 Ghostscript didn't work unfortunately:
 - strips some important decorations from a pdf (the red outlining for fields)

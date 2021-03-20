@@ -1,4 +1,5 @@
 (pdfmark-prelude.ps) run
+(ps2js.ps) run
 
 % Taken from http://math.uakron.edu/~dpstory/tutorial/pdfmarks/acroform.tex
 
@@ -24,6 +25,7 @@
 /FfRichText        {1 26 1 sub bitshift} def
 
 
+/QCenterJustified {1} def
 /QRightJustified {2} def
 
 
@@ -54,6 +56,21 @@
   /PUT pdfmark
 [ { MoonNotesOff } /CLOSE pdfmark
 
+/SignaturesExist      {1 1 1 sub bitshift} def
+/AppendOnly      {1 2 1 sub bitshift} def
+
+
+/signature {
+  % just keep enabling signatures over and over again
+  [ {aform} <<
+    /SigFlags SignaturesExist
+    >> /PUT pdfmark
+  <<
+    /FT /Sig
+  >> exch deepmerge 
+} def
+
+
   
 /circlebox { <<
   /BS << /S /S /W 1 >>
@@ -75,9 +92,32 @@
   bd
   >> deepmerge } def
 
+/checkchild { <<
+  /Ff FfRadio 
+  >> deepmerge } def
+
+/formparent { counttomark 3 add -2 roll  % [list of checkchildren] checkparent
+  exch dup 3 1 roll
+  % This just sets all the children's parents
+  { exch dup 3 1 roll exch [ exch << /Parent 6 -1 roll >> /PUT pdfmark } forall
+  counttomark 1 add 1 roll
+  % children list is still set
+  <<
+  /Kids counttomark 2 add -1 roll
+>> deepmerge } def
+
+/checkparent { formparent <<
+  /FT /Btn
+  /Ff FfRadio
+  >> deepmerge } def
+
 /combtext { <<
   /MaxLen counttomark 2 add -1 roll
   /Ff FfComb
+>> deepmerge textfield } def
+
+/numtext { <<
+  /Q QRightJustified
 >> deepmerge } def
 
 /label {
@@ -112,7 +152,7 @@
   % There is a better way!
   % Executable arrays are just arrays with executable names inside
   % (Test) -> {Test}
-  1 array dup 0 4 -1 roll cvn cvx put cvx
+  1 array dup 0 4 -1 roll cvn cvx put cvx 
 } def
 
 /mkobj {
@@ -121,3 +161,18 @@
   rand 10 string cvs cvid
   dup counttomark 1 add 1 roll
 } def
+
+
+% For javascript
+[ /_objdef {CO} /type /array /OBJ pdfmark
+[ {aform} <<
+  /CO {CO}
+  >> /PUT pdfmark
+
+
+
+% % Somehow the above is created with this but I can't figure it out
+% [/BBox [0 0 1.3 1.3] /_objdef {xCross} /BP pdfmark
+% 0 0 1 setrgbcolor /ZapfDingbats 9.3262 selectfont 2.9515 3.2732 moveto (n) show
+% [/EP pdfmark
+

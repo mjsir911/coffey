@@ -1,4 +1,4 @@
-% set makeprg=ps2pdf\ -DNOSAFER
+% set makeprg=python3\ pdfmark.py\ &&\ pkill\ -SIGHUP\ mupdf\ &&\ :
 (pdfmarklib.ps) run
 
 /h {
@@ -88,8 +88,174 @@
   (mailing.zip) label
   dict2pdfmark /ANN pdfmark
 
+/y { 802 exch sub } def
+/x { 99 sub } def
+
 [ << >>
-  8 combtext textfield
+  17 combtext
+  135 x 224 y 255 18 fbox
+  (foreign_province) label
+  dict2pdfmark /ANN pdfmark
+
+[ << >>
+  12 combtext
+  389 x 224 y 181 18 fbox
+  (foreign_country) label
+  dict2pdfmark /ANN pdfmark
+
+[ << >>
+  7 combtext
+  569 x 224 y 106 18 fbox
+  (foreign_postal_code) label
+  dict2pdfmark /ANN pdfmark
+
+[
+  mark mkobj
+    << >>
+    237 x 253 y 13 5 fbox
+    circlebox
+    checkchild
+    dict2pdfmark
+    /AP << /N << /Off {MoonNotesOff} /Yes3 {MoonNotes} >> >>
+    /ANN pdfmark
+  mark mkobj
+    << >>
+    333 x 253 y 13 5 fbox
+    circlebox 
+    checkchild
+    dict2pdfmark
+    /AP << /N << /Off {MoonNotesOff} /Yes2 {MoonNotes} >> >>
+    /ANN pdfmark
+  mark mkobj 
+    << >>
+    434 x 253 y 13 5 fbox
+    circlebox
+    checkchild
+    dict2pdfmark
+    /AP << /N << /Off {MoonNotesOff} /Yes1 {MoonNotes} >> >>
+    /ANN pdfmark
+]
+
+[ mkobj
+  << >>
+  checkparent
+  (return_status) label
+  dict2pdfmark
+  /ANN pdfmark
+
+  pop
+
+[ << >>
+  453 x 274 y 13 5 fbox
+  circlebox
+  (state_fund_taxpayer) label
+  dict2pdfmark /ANN pdfmark
+[ << >>
+  533 x 274 y 13 5 fbox
+  circlebox 
+  (state_fund_spouse) label 
+  dict2pdfmark /ANN pdfmark
+[ mkobj << >>
+  1 combtext textfield 
+  662 x 263 y 13 16 fbox
+  (state_fund_total) label 
+  dict2pdfmark
+  /AA << /C << /JS (event.target.value = \(this.getField\('state_fund_taxpayer'\).value == "Yes" ? 1 : 0\) + \(this.getField\('state_fund_spouse'\).value == "Yes" ? 1 : 0\) ) /S /JavaScript >> >>
+  /ANN pdfmark
+
+[ {CO} 3 -1 roll /APPEND pdfmark
+
+[ << >>
+  circlebox 
+  559 x 294 y 13 5 fbox
+  (taxpayer.veteran) label 
+  dict2pdfmark /ANN pdfmark
+[ << >>
+  circlebox 
+  629 x 294 y 13 5 fbox
+  (spouse.veteran) label 
+  dict2pdfmark /ANN pdfmark
+[ << >>
+  circlebox 
+  559 x 315 y 13 5 fbox
+  (taxpayer.deceased) label 
+  dict2pdfmark /ANN pdfmark
+[ << >>
+  circlebox 
+  629 x 315 y 13 5 fbox
+  (spouse.deceased) label 
+  dict2pdfmark /ANN pdfmark
+[ << >>
+  circlebox 
+  559 x 335 y 13 5 fbox
+  (taxpayer.under_18) label 
+  dict2pdfmark /ANN pdfmark
+[ << >>
+  circlebox 
+  629 x 335 y 13 5 fbox
+  (spouse.under_18) label 
+  dict2pdfmark /ANN pdfmark
+[ << >>
+  circlebox 
+  661 x 356 y 13 5 fbox
+  (name_change) label 
+  dict2pdfmark /ANN pdfmark
+[ << >>
+  circlebox 
+  661 x 367 y 13 5 fbox
+  (nocustodial_parent) label 
+  dict2pdfmark /ANN pdfmark
+[ << >>
+  circlebox 
+  661 x 378 y 13 5 fbox
+  (schedule_TDS) label 
+  dict2pdfmark /ANN pdfmark
+
+ 
+[
+  mark mkobj << >>
+    136 x 409 y 13 5 fbox
+    circlebox 
+    checkchild
+    dict2pdfmark
+    /AP << /N << /Off {MoonNotesOff} /Non {MoonNotes} >> >>
+    /ANN pdfmark
+
+  mark mkobj << >>
+    circlebox 
+    216 x 409 y 13 5 fbox
+    checkchild
+    dict2pdfmark
+    /AP << /N << /Off {MoonNotesOff} /Part {MoonNotes} >> >>
+    /ANN pdfmark
+  mark mkobj << >>
+    circlebox 
+    314 x 409 y 13 5 fbox
+    checkchild
+    dict2pdfmark
+    /AP << /N << /Off {MoonNotesOff} /Both {MoonNotes} >> >>
+    /ANN pdfmark
+  mark mkobj << >>
+    circlebox 
+    510 x 409 y 13 5 fbox
+    checkchild
+    dict2pdfmark
+    /AP << /N << /Off {MoonNotesOff} /Composite {MoonNotes} >> >>
+    /ANN pdfmark
+]
+
+[ mkobj
+  << >>
+  checkparent
+  (residency_status) label
+  dict2pdfmark
+  /ANN pdfmark
+
+  pop
+
+
+[ << >>
+  8 combtext
   450 423 h 101 17 fbox
   (income) label
   dict2pdfmark 
@@ -98,7 +264,7 @@
 
 
 [ << >>
-  8 combtext textfield
+  8 combtext
   450 444 h 101 17 fbox
   (gross_income) label
   dict2pdfmark 
@@ -106,139 +272,206 @@
   /ANN pdfmark
 
 
+
+[
+  mark mkobj << >> circlebox checkchild 151 x 508 y 15 7 fbox dict2pdfmark /AP << /N << /Off {MoonNotesOff} /Single {MoonNotes} >> >> /ANN pdfmark
+  mark mkobj << >> circlebox checkchild 151 x 519 y 15 7 fbox dict2pdfmark /AP << /N << /Off {MoonNotesOff} /Married_Joint {MoonNotes} >> >> /ANN pdfmark
+  mark mkobj << >> circlebox checkchild 151 x 530 y 15 7 fbox dict2pdfmark /AP << /N << /Off {MoonNotesOff} /Married_Separate {MoonNotes} >> >> /ANN pdfmark
+  mark mkobj << >> circlebox checkchild 151 x 541 y 15 7 fbox dict2pdfmark /AP << /N << /Off {MoonNotesOff} /HoH {MoonNotes} >> >> /ANN pdfmark
+  mark mkobj << >> circlebox checkchild 308 x 541 y 15 7 fbox dict2pdfmark /AP << /N << /Off {MoonNotesOff} /Custodial {MoonNotes} >> >> /ANN pdfmark
+]
+
+[ mkobj
+  << >>
+  checkparent
+  (filing_status) label
+  dict2pdfmark
+  /ANN pdfmark
+
+  pop
+
 [ << >>
-  8 combtext textfield
-  350 548 h 101 17 fbox
-  (resident_start) label
+  2 combtext textfield
+  350 548 h 26 17 fbox
+  (resident_start_month) label
   dict2pdfmark 
   /Q QRightJustified
   /ANN pdfmark
 
 [ << >>
-  8 combtext textfield
-  475 548 h 101 17 fbox
-  (resident_end) label
+  2 combtext textfield
+  375 548 h 26 17 fbox
+  (resident_start_day) label
   dict2pdfmark 
   /Q QRightJustified
   /ANN pdfmark
 
 [ << >>
+  4 combtext textfield
+  400 548 h 51 17 fbox
+  (resident_start_year) label
+  dict2pdfmark 
+  /ANN pdfmark
+
+[ << >>
+  2 combtext textfield
+  475 548 h 26 17 fbox
+  (resident_end_month) label
+  dict2pdfmark 
+  /Q QRightJustified
+  /ANN pdfmark
+
+
+[ << >>
+  2 combtext textfield
+  500 548 h 26 17 fbox
+  (resident_end_day) label
+  dict2pdfmark 
+  /Q QRightJustified
+  /ANN pdfmark
+
+[ << >>
+  4 combtext textfield
+  525 548 h 51 17 fbox
+  (resident_end_year) label
+  dict2pdfmark 
+  /ANN pdfmark
+
+[ mkobj << >>
   3 combtext textfield
   % Can this be autocalculated / autofilled? its a stretch
   (residency_duration) label
   429 568 h 38 17 fbox
   dict2pdfmark 
+  /AA << /C << /JS 
+    % (app.alert(new Date(doc.getField('resident_start_year').value, doc.getField('resident_start_month').value + 1, doc.getField('resident_start_day').value\).getYear()\)) 
+    ( event.target.value=Math.floor\(
+      \(\(new Date\(this.getField\('resident_end_year'\).value, this.getField('resident_end_month').value - 1, this.getField('resident_end_day').value\)\) -
+      \(new Date\(this.getField('resident_start_year').value, this.getField('resident_start_month').value - 1, this.getField('resident_start_day').value\)\)\)
+      / 86400000
+    \)) 
+  /S /JavaScript >> >>
+  % /AA << /V << /JS (this.getField('residency_duration_ratio').value = event.value / 365) /S /JavaScript >> >>
+  % /AA << /V << /JS (this.calculate = true) /S /JavaScript >> >>
   /Q QRightJustified
   /ANN pdfmark
 
+[ {CO} 3 -1 roll /APPEND pdfmark
 
-[ << >>
+[ mkobj << >>
   (residency_duration_ratio) label
   4 combtext textfield
   525 568 h 51 17 fbox
   dict2pdfmark 
-  % This can definitely be autocalculated if I can figure out whats going on
-  /AA << 
-      /Bl << /JS (app.alert('HOLA!');) /S /Javascript >>
-      >>
+  /AA << /C << /JS (event.target.value = \(this.getField('residency_duration').value / 365\).toFixed(4).split(".") [1] ) /S /JavaScript >> >>
   /Q QRightJustified
   /ANN pdfmark
 
-/y { 802 exch sub } def
-/x { 99 sub } def
-
-[ /Subtype /Widget /Rect [ 136 x 224 y 676 x 242 y ] /F 4 /FT /Tx /T (Polyline423) bd /MaxLen 10 /ANN pdfmark
+[ {CO} 3 -1 roll /APPEND pdfmark
 
 [
+  [ 
+    mark mkobj << >>
+      (month) label
+      textfield
+      249 686 h 15 15 fbox
+      dict2pdfmark
+      /Q QCenterJustified
+      /ANN pdfmark
+
+    mark mkobj << >>
+      (day) label
+      textfield
+      269 686 h 15 15 fbox
+      dict2pdfmark
+      /Q QCenterJustified
+      /ANN pdfmark
+
+    mark mkobj << >>
+      (year) label
+      textfield
+      287 686 h 25 15 fbox
+      dict2pdfmark
+      /Q QCenterJustified
+      /ANN pdfmark
+  ]
+
   mark mkobj
-    /Ff FfRadio 
     << >>
-    237 x 253 y 13 5 fbox
-    % circlebox
-    % (original_return) label
+    formparent
+    (date) label
     dict2pdfmark
-  /BS << /S /S /W 1 >>
-  /DA ( /ZaDb 0 Tf 0 g )
-  /AP << /N << /Off {MoonNotesOff} /Yes3 {MoonNotes} >> >>
-  /F 4
-  /FT /Btn
-  /AS /Off
-  /H /P
-  /MK << /BC [  0 0 0  ] /CA (n) >>
-  /Subtype /Widget
-    /ANN pdfmark
-  mark mkobj
-    /Ff FfRadio
-    << >>
-    333 x 253 y 13 5 fbox
-    % circlebox 
-    % (amended_return) label
-    dict2pdfmark
-  /BS << /S /S /W 1 >>
-  /DA ( /ZaDb 0 Tf 0 g )
-  /AP << /N << /Off {MoonNotesOff} /Yes2 {MoonNotes} >> >>
-  /F 4
-  /FT /Btn
-  /AS /Off
-  /H /P
-  /MK << /BC [  0 0 0  ] /CA (n) >>
-  /Subtype /Widget
-    /ANN pdfmark
-  mark mkobj 
-    /Ff FfRadio
-    << >>
-    434 x 253 y 13 5 fbox
-    % circlebox
-    % (amended_return_federal) label
-    dict2pdfmark
-  /BS << /S /S /W 1 >>
-  /DA ( /ZaDb 0 Tf 0 g )
-  /AP << /N << /Off {MoonNotesOff} /Yes1 {MoonNotes} >> >>
-  /F 4
-  /FT /Btn
-  /AS /Off
-  /H /P
-  /MK << /BC [  0 0 0  ] /CA (n) >>
-  /Subtype /Widget
     /ANN pdfmark
 ]
 
-dup { [ exch << /Parent {Parent} >> /PUT pdfmark } forall
+mark mkobj << >>
+  (signature) label
+  formparent
+  textfield
+  signature
+  80 678 h 167 22 fbox
+  dict2pdfmark
+  /ANN pdfmark
+  pop
 
-[ /_objdef {Parent}
-  /FT /Btn
-  /Ff 49152
-  /Kids counttomark 2 add -1 roll
-  /T (RBF9)
+[
+  [ 
+    mark mkobj << >>
+      (month) label
+      textfield
+      521 686 h 15 15 fbox
+      dict2pdfmark
+      /Q QCenterJustified
+      /ANN pdfmark
+
+    mark mkobj << >>
+      (day) label
+      textfield
+      541 686 h 15 15 fbox
+      dict2pdfmark
+      /Q QCenterJustified
+      /ANN pdfmark
+
+    mark mkobj << >>
+      (year) label
+      textfield
+      559 686 h 25 15 fbox
+      dict2pdfmark
+      /Q QCenterJustified
+      /ANN pdfmark
+  ]
+
+  mark mkobj
+    << >>
+    formparent
+    (date) label
+    dict2pdfmark
+    /ANN pdfmark
+]
+
+mark mkobj << >>
+  (spouse.signature) label
+  formparent
+  textfield
+  signature
+  358 678 h 162 22 fbox
+  dict2pdfmark
+  /ANN pdfmark
+  pop
+
+mark << >>
+  (email) label
+  textfield
+  107 703 h 312 22 fbox
+  dict2pdfmark
   /ANN pdfmark
 
-[ << >>
-  453 x 274 y 13 5 fbox
-  circlebox (state_fund_taxpayer) label dict2pdfmark /ANN pdfmark
-[ << >>
-  533 x 274 y 13 5 fbox
-  circlebox (state_fund_spouse) label dict2pdfmark /ANN pdfmark
-
-
-quit
-[ 1 combtext textfield /Rect [663 x 263 y 675 x 279 y] (state_fund_total) label /ANN pdfmark
-[ circlebox /Rect [559 x 294 y 572 x 299 y] (taxpayer.veteran) label /ANN pdfmark
-[ circlebox /Rect [629 x 294 y 642 x 299 y] (spouse.veteran) label /ANN pdfmark
-[ circlebox /Rect [559 x 315 y 572 x 320 y] (taxpayer.deceased) label /ANN pdfmark
-[ circlebox /Rect [629 x 315 y 642 x 320 y] (spouse.deceased) label /ANN pdfmark
-[ circlebox /Rect [559 x 335 y 572 x 340 y] (taxpayer.under_18) label /ANN pdfmark
-[ circlebox /Rect [629 x 335 y 642 x 340 y] (spouse.under_18) label /ANN pdfmark
-[ circlebox /Rect [661 x 356 y 674 x 361 y] (name_change) label /ANN pdfmark
-[ circlebox /Rect [661 x 367 y 674 x 372 y] (nocustodial_parent) label /ANN pdfmark
-[ circlebox /Rect [661 x 378 y 674 x 383 y] (schedule_TDS) label /ANN pdfmark
-
-[ circlebox /Rect [136 x 409 y 149 x 414 y] (noresident) label /Ff FfRadio /ANN pdfmark
-[ circlebox /Rect [216 x 409 y 229 x 414 y] (noresident) label /Ff FfRadio /ANN pdfmark
-[ circlebox /Rect [314 x 409 y 327 x 414 y] (nonresident+part-year) label /ANN pdfmark
-[ circlebox /Rect [510 x 409 y 523 x 414 y] (nonresident_composite) label /ANN pdfmark
-[  /Subtype /Widget /Rect [ 152 x 509 y 165 x 514 y ] /F 4 /FT /Tx (Polygon1866) label bd /MaxLen 10 /ANN pdfmark
-[  /Subtype /Widget /Rect [ 152 x 542 y 165 x 547 y ] /F 4 /FT /Tx (Polygon2019) label bd /MaxLen 10 /ANN pdfmark
-[  /Subtype /Widget /Rect [ 310 x 542 y 323 x 547 y ] /F 4 /FT /Tx (Polygon2053) label bd /MaxLen 10 /ANN pdfmark
+mark << >>
+  (phone) label
+  textfield
+  493 703 h 88 22 fbox
+  dict2pdfmark
+  /ANN pdfmark
 
 showpage
 
@@ -247,7 +480,7 @@ showpage
 	/Rect [ 18 94 h 169 112 h ]
 	/F 4
 	/FT /Tx
-	(taxpayer.name.first) label
+	/T (taxpayer.name.first)
 	bd
 	/Ff 1 24 bitshift
 	/MaxLen 10
@@ -257,7 +490,7 @@ showpage
 	/Rect [ 168 94 h 184 112 h ]
 	/F 4
 	/FT /Tx
-	(taxpayer.name.middle_initial) label
+	/T (taxpayer.name.middle_initial)
 	bd
 	/Ff 1 24 bitshift
 	/MaxLen 1
@@ -267,7 +500,7 @@ showpage
 	/Rect [ 183 94 h 409 112 h ]
 	/F 4
 	/FT /Tx
-	(taxpayer.name.last) label
+	/T (taxpayer.name.last)
 	bd
 	/Q 2
 	/Ff 1 24 bitshift
@@ -278,7 +511,7 @@ showpage
 	/Rect [ 558 94 h 432 112 h ]
 	/F 4
 	/FT /Tx
-	(taxpayer.ssn) label
+	/T (taxpayer.ssn) 
 	bd
 	/Ff 1 24 bitshift
 	/MaxLen 9
@@ -287,97 +520,56 @@ showpage
 /y { 1625 exch sub } def
 /x { 99 sub } def
 
-% [  /Subtype /Widget /Rect [ 471 x 999  y 497 x 1016 y ] /F 4 /FT /Tx (dependents) label  bd /Ff 1 24 bitshift /MaxLen 2 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 568 x 999  y 632 x 1016 y ] /F 4 /FT /Tx (Polygon3233) label bd /Ff 1 24 bitshift /MaxLen 5 /ANN pdfmark
+/personal_exemptions [ mkobj << >> 4 combtext numtext 582 x 979 y 51 15 fbox (Polygon3126) label dict2pdfmark /ANN pdfmark def
+[ << >> 2 combtext numtext 472 x 1000 y 24 16 fbox (Polygon3219) label dict2pdfmark /ANN pdfmark
+/dependant_exemptions [ mkobj << >> 5 combtext numtext 569 x 1000 y 63 15 fbox (Polygon3233) label dict2pdfmark /ANN pdfmark def
+[ << >> circlebox 245 x 1031 y 13 5 fbox (Polygon3265) label dict2pdfmark /ANN pdfmark
+[ << >> circlebox 299 x 1031 y 13 5 fbox (Polygon3270) label dict2pdfmark /ANN pdfmark
+quit
+/num_dependants [ mkobj << >> 1 combtext numtext 484 x 1020 y 12 16 fbox (Polygon3310) label dict2pdfmark /ANN pdfmark cvlit def
+
+num_dependants == quit
+
+/age_exemptions [ 
+  mkobj << >> 4 combtext numtext 582 x 1020 y 51 15 fbox (Polygon3325) label 
+  { num_dependants 1000 mul } autocalc =
+  dict2pdfmark /ANN pdfmark def
+
+[ << >> circlebox 245 x 1051 y 13 5 fbox (Polygon3345) label dict2pdfmark /ANN pdfmark
+[ << >> circlebox 299 x 1051 y 13 5 fbox (Polygon3350) label dict2pdfmark /ANN pdfmark
+[ << >> 1 combtext numtext 484 x 1041 y 12 16 fbox (Polygon3390) label dict2pdfmark /ANN pdfmark
+[ << >> 4 combtext numtext 582 x 1041 y 51 15 fbox (Polygon3404) label dict2pdfmark /ANN pdfmark
+[ << >> 6 combtext numtext 557 x 1061 y 76 16 fbox (Polygon3522) label dict2pdfmark /ANN pdfmark
+[ << >> 6 combtext numtext 557 x 1082 y 76 16 fbox (Polygon3640) label dict2pdfmark /ANN pdfmark
+{ personal_exemptions dependant_exemptions age_exemptions add add } ==
+[ mkobj << >> 6 combtext numtext 557 x 1102 y 76 16 fbox (Polygon3753) label dict2pdfmark
+/AA << /C << /JS (event.target.value = this.getField('Polygon3126').value + this.getField('Polygon3233').value + this.getField('Polygon3325').value ) /S /JavaScript >> >>
+/ANN pdfmark
+[ {CO} 3 -1 roll /APPEND pdfmark
+[ << >> 8 combtext 532 x 1166 y 101 16 fbox (Polygon4295) label dict2pdfmark /ANN pdfmark
+[ << >> 8 combtext 532 x 1187 y 101 16 fbox (Polygon4410) label dict2pdfmark /ANN pdfmark
+[ << >> 8 combtext 148 x 1221 y 101 16 fbox (Polygon4520) label dict2pdfmark /ANN pdfmark
+[ << >> 3 combtext 298 x 1221 y 38 16 fbox (Polygon4533) label dict2pdfmark /ANN pdfmark
+[ << >> 8 combtext 532 x 1221 y 101 16 fbox (Polygon4578) label dict2pdfmark /ANN pdfmark
+[ << >> 9 combtext 148 x 1255 y 116 16 fbox (Polygon4666) label dict2pdfmark /ANN pdfmark
+[ << >> 9 combtext 314 x 1255 y 116 16 fbox (Polygon4681) label dict2pdfmark /ANN pdfmark
+[ << >> 9 combtext 517 x 1255 y 116 16 fbox (Polygon4699) label dict2pdfmark /ANN pdfmark
+[ << >> 9 combtext 517 x 1275 y 116 16 fbox (Polygon4816) label dict2pdfmark /ANN pdfmark
+[ << >> 8 combtext 532 x 1296 y 101 16 fbox (Polygon4933) label dict2pdfmark /ANN pdfmark
+[ << >> 8 combtext 532 x 1316 y 101 16 fbox (Polygon5048) label dict2pdfmark /ANN pdfmark
+[ << >> 8 combtext 532 x 1337 y 101 16 fbox (Polygon5163) label dict2pdfmark /ANN pdfmark
+[ << >> 9 combtext 517 x 1357 y 116 16 fbox (Polygon5268) label dict2pdfmark /ANN pdfmark
+[ << >> circlebox 171 x 1422 y 13 5 fbox (Polygon5606) label dict2pdfmark /ANN pdfmark
+[ << >> circlebox 256 x 1422 y 13 5 fbox (Polygon5619) label dict2pdfmark /ANN pdfmark
+[ << >> circlebox 316 x 1422 y 13 5 fbox (Polygon5626) label dict2pdfmark /ANN pdfmark
+[ << >> circlebox 375 x 1422 y 13 5 fbox (Polygon5633) label dict2pdfmark /ANN pdfmark
+[ << >> 8 combtext 532 x 1432 y 101 16 fbox (Polygon5748) label dict2pdfmark /ANN pdfmark
+[ << >> 8 combtext 532 x 1452 y 101 16 fbox (Polygon5865) label dict2pdfmark /ANN pdfmark
+[ << >> 8 combtext 532 x 1473 y 101 16 fbox (Polygon5977) label dict2pdfmark /ANN pdfmark
+[ << >> 8 combtext 532 x 1493 y 101 16 fbox (Polygon6092) label dict2pdfmark /ANN pdfmark
+[ << >> 4 combtext 607 x 1514 y 50 16 fbox (Polygon6223) label dict2pdfmark /ANN pdfmark
+[ << >> 8 combtext 532 x 1534 y 101 16 fbox (Polygon6330) label dict2pdfmark /ANN pdfmark
+[ << >> 8 combtext 532 x 1555 y 101 16 fbox (Polygon6446) label dict2pdfmark /ANN pdfmark
 
 
-% % Somehow the above is created with this but I can't figure it out
-% [/BBox [0 0 1.3 1.3] /_objdef {xCross} /BP pdfmark
-% 0 0 1 setrgbcolor /ZapfDingbats 9.3262 selectfont 2.9515 3.2732 moveto (n) show
-% [/EP pdfmark
-
-
-[ /Subtype /Widget /Rect [245 x 1031 y 258 x 1036 y]
-  circlebox
-  (age_65) label
-  dict2pdfmark /ANN pdfmark
-
-[ 4 combtext textfield /Rect [581 x 978 y 632 x 995 y] /Q QRightJustified (4a) label /ANN pdfmark
-[ 2 combtext textfield /Rect [472 x 1000 y 496 x 1016 y] (Polygon3219) label /ANN pdfmark
-[ 7 combtext textfield /Rect [569 x 1000 y 656 x 1015 y] (Polygon3233) label /ANN pdfmark
-[ circlebox /Rect [245 x 1031 y 258 x 1036 y] (Polygon3265) label /ANN pdfmark
-[ circlebox /Rect [299 x 1031 y 312 x 1036 y] (Polygon3270) label /ANN pdfmark
-[ 1 combtext textfield /Rect [484 x 1020 y 496 x 1036 y] (Polygon3310) label /ANN pdfmark
-[ 6 combtext textfield /Rect [582 x 1020 y 657 x 1035 y] (Polygon3325) label /ANN pdfmark
-[ circlebox /Rect [245 x 1051 y 258 x 1056 y] (Polygon3345) label /ANN pdfmark
-[ circlebox /Rect [299 x 1051 y 312 x 1056 y] (Polygon3350) label /ANN pdfmark
-[ 1 combtext textfield /Rect [484 x 1041 y 496 x 1057 y] (Polygon3390) label /ANN pdfmark
-[ 6 combtext textfield /Rect [582 x 1041 y 657 x 1056 y] (Polygon3404) label /ANN pdfmark
-[ 8 combtext textfield /Rect [557 x 1061 y 657 x 1077 y] (Polygon3522) label /ANN pdfmark
-[ 8 combtext textfield /Rect [557 x 1082 y 657 x 1098 y] (Polygon3640) label /ANN pdfmark
-[ 8 combtext textfield /Rect [557 x 1102 y 657 x 1118 y] (Polygon3753) label /ANN pdfmark
-[ 10 combtext textfield /Rect [532 x 1166 y 657 x 1182 y] (Polygon4295) label /ANN pdfmark
-[ 10 combtext textfield /Rect [532 x 1187 y 657 x 1203 y] (Polygon4410) label /ANN pdfmark
-[ 10 combtext textfield /Rect [148 x 1221 y 273 x 1237 y] (Polygon4520) label /ANN pdfmark
-[ 5 combtext textfield /Rect [298 x 1221 y 360 x 1237 y] (Polygon4533) label /ANN pdfmark
-[ 10 combtext textfield /Rect [532 x 1221 y 657 x 1237 y] (Polygon4578) label /ANN pdfmark
-[ 11 combtext textfield /Rect [148 x 1255 y 288 x 1271 y] (Polygon4666) label /ANN pdfmark
-[ 11 combtext textfield /Rect [314 x 1255 y 454 x 1271 y] (Polygon4681) label /ANN pdfmark
-[ 11 combtext textfield /Rect [517 x 1255 y 657 x 1271 y] (Polygon4699) label /ANN pdfmark
-[ 11 combtext textfield /Rect [517 x 1275 y 657 x 1291 y] (Polygon4816) label /ANN pdfmark
-[ 10 combtext textfield /Rect [532 x 1296 y 657 x 1312 y] (Polygon4933) label /ANN pdfmark
-[ 10 combtext textfield /Rect [532 x 1316 y 657 x 1332 y] (Polygon5048) label /ANN pdfmark
-[ 10 combtext textfield /Rect [532 x 1337 y 657 x 1353 y] (Polygon5163) label /ANN pdfmark
-[ 11 combtext textfield /Rect [517 x 1357 y 657 x 1373 y] (Polygon5268) label /ANN pdfmark
-[ circlebox /Rect [171 x 1422 y 184 x 1427 y] (Polygon5606) label /ANN pdfmark
-[ circlebox /Rect [256 x 1422 y 269 x 1427 y] (Polygon5619) label /ANN pdfmark
-[ circlebox /Rect [316 x 1422 y 329 x 1427 y] (Polygon5626) label /ANN pdfmark
-[ circlebox /Rect [375 x 1422 y 388 x 1427 y] (Polygon5633) label /ANN pdfmark
-[ 10 combtext textfield /Rect [532 x 1432 y 657 x 1448 y] (Polygon5748) label /ANN pdfmark
-[ 10 combtext textfield /Rect [532 x 1452 y 657 x 1468 y] (Polygon5865) label /ANN pdfmark
-[ 10 combtext textfield /Rect [532 x 1473 y 657 x 1489 y] (Polygon5977) label /ANN pdfmark
-[ 10 combtext textfield /Rect [532 x 1493 y 657 x 1509 y] (Polygon6092) label /ANN pdfmark
-[ 4 combtext textfield /Rect [607 x 1514 y 657 x 1530 y] (Polygon6223) label /ANN pdfmark
-[ 10 combtext textfield /Rect [532 x 1534 y 657 x 1550 y] (Polygon6330) label /ANN pdfmark
-[ 10 combtext textfield /Rect [532 x 1555 y 657 x 1571 y] (Polygon6446) label /ANN pdfmark
-
-
-% showpage
-% [  /Rect [ 245 x 1031 y 358 x 1136 y ] (CB5) /FT /Btn /F 4 /H /O /AP << /N << /Checked /null >> >> /BS << /W 1 /S /S >> /MK << /BC [ 1 0 0  ] /CA (H) >> /DA (/ZaDb 10 Tf 1 0 0 rg) label /Subtype /Widget /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 299 x 1031 y 312 x 1036 y ] /F 4 /FT /Tx (Polygon3270) label bd /Ff 1 24 bitshift /MaxLen 1 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 484 x 1020 y 496 x 1036 y ] /F 4 /FT /Tx (Polygon3310) label bd /Ff 1 24 bitshift /MaxLen 1 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 582 x 1020 y 657 x 1035 y ] /F 4 /FT /Tx (Polygon3325) label bd /Ff 1 24 bitshift /MaxLen 6 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 245 x 1051 y 258 x 1056 y ] /F 4 /FT /Tx (Polygon3345) label bd /Ff 1 24 bitshift /MaxLen 1 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 299 x 1051 y 312 x 1056 y ] /F 4 /FT /Tx (Polygon3350) label bd /Ff 1 24 bitshift /MaxLen 1 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 484 x 1041 y 496 x 1057 y ] /F 4 /FT /Tx (Polygon3390) label bd /Ff 1 24 bitshift /MaxLen 1 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 582 x 1041 y 657 x 1056 y ] /F 4 /FT /Tx (Polygon3404) label bd /Ff 1 24 bitshift /MaxLen 6 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 557 x 1061 y 657 x 1077 y ] /F 4 /FT /Tx (Polygon3522) label bd /Ff 1 24 bitshift /MaxLen 8 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 557 x 1082 y 657 x 1098 y ] /F 4 /FT /Tx (Polygon3640) label bd /Ff 1 24 bitshift /MaxLen 8 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 557 x 1102 y 657 x 1118 y ] /F 4 /FT /Tx (Polygon3753) label bd /Ff 1 24 bitshift /MaxLen 8 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 532 x 1166 y 657 x 1182 y ] /F 4 /FT /Tx (Polygon4295) label bd /Ff 1 24 bitshift /MaxLen 10 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 532 x 1187 y 657 x 1203 y ] /F 4 /FT /Tx (Polygon4410) label bd /Ff 1 24 bitshift /MaxLen 10 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 148 x 1221 y 273 x 1237 y ] /F 4 /FT /Tx (Polygon4520) label bd /Ff 1 24 bitshift /MaxLen 10 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 298 x 1221 y 360 x 1237 y ] /F 4 /FT /Tx (Polygon4533) label bd /Ff 1 24 bitshift /MaxLen 5 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 532 x 1221 y 657 x 1237 y ] /F 4 /FT /Tx (Polygon4578) label bd /Ff 1 24 bitshift /MaxLen 10 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 148 x 1255 y 288 x 1271 y ] /F 4 /FT /Tx (Polygon4666) label bd /Ff 1 24 bitshift /MaxLen 11 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 314 x 1255 y 454 x 1271 y ] /F 4 /FT /Tx (Polygon4681) label bd /Ff 1 24 bitshift /MaxLen 11 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 517 x 1255 y 657 x 1271 y ] /F 4 /FT /Tx (Polygon4699) label bd /Ff 1 24 bitshift /MaxLen 11 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 517 x 1275 y 657 x 1291 y ] /F 4 /FT /Tx (Polygon4816) label bd /Ff 1 24 bitshift /MaxLen 11 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 532 x 1296 y 657 x 1312 y ] /F 4 /FT /Tx (Polygon4933) label bd /Ff 1 24 bitshift /MaxLen 10 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 532 x 1316 y 657 x 1332 y ] /F 4 /FT /Tx (Polygon5048) label bd /Ff 1 24 bitshift /MaxLen 10 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 532 x 1337 y 657 x 1353 y ] /F 4 /FT /Tx (Polygon5163) label bd /Ff 1 24 bitshift /MaxLen 10 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 517 x 1357 y 657 x 1373 y ] /F 4 /FT /Tx (Polygon5268) label bd /Ff 1 24 bitshift /MaxLen 11 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 171 x 1422 y 184 x 1427 y ] /F 4 /FT /Tx (Polygon5606) label bd /Ff 1 24 bitshift /MaxLen 1 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 256 x 1422 y 269 x 1427 y ] /F 4 /FT /Tx (Polygon5619) label bd /Ff 1 24 bitshift /MaxLen 1 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 316 x 1422 y 329 x 1427 y ] /F 4 /FT /Tx (Polygon5626) label bd /Ff 1 24 bitshift /MaxLen 1 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 375 x 1422 y 388 x 1427 y ] /F 4 /FT /Tx (Polygon5633) label bd /Ff 1 24 bitshift /MaxLen 1 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 532 x 1432 y 657 x 1448 y ] /F 4 /FT /Tx (Polygon5748) label bd /Ff 1 24 bitshift /MaxLen 10 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 532 x 1452 y 657 x 1468 y ] /F 4 /FT /Tx (Polygon5865) label bd /Ff 1 24 bitshift /MaxLen 10 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 532 x 1473 y 657 x 1489 y ] /F 4 /FT /Tx (Polygon5977) label bd /Ff 1 24 bitshift /MaxLen 10 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 532 x 1493 y 657 x 1509 y ] /F 4 /FT /Tx (Polygon6092) label bd /Ff 1 24 bitshift /MaxLen 10 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 607 x 1514 y 657 x 1530 y ] /F 4 /FT /Tx (Polygon6223) label bd /Ff 1 24 bitshift /MaxLen 4 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 532 x 1534 y 657 x 1550 y ] /F 4 /FT /Tx (Polygon6330) label bd /Ff 1 24 bitshift /MaxLen 10 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 532 x 1555 y 657 x 1571 y ] /F 4 /FT /Tx (Polygon6446) label bd /Ff 1 24 bitshift /MaxLen 10 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 117 x 936 y 507 x 954 y ] /F 4 /FT /Tx (Polyline6524) label bd /Ff 1 24 bitshift /MaxLen 32 /ANN pdfmark
-% [  /Subtype /Widget /Rect [ 532 x 937 y 657 x 954 y ] /F 4 /FT /Tx (Polygon6525) label bd /Ff 1 24 bitshift /MaxLen 10 /ANN pdfmark
 showpage

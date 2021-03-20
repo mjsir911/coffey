@@ -23,7 +23,9 @@ def append_js_to_pdf(file_name):
     try:
         js = open(sys.argv[1]).read()
     except:
-        js = "this.getField('residency_duration_ratio').value = (event.value / 365).toString().split('.')[1];"
+        # js = "this.getField('residency_duration_ratio').value = (event.value / 365).toString().split('.')[1];"
+        # js = "this.getField('residency_duration_ratio').value = 1"
+        js = "app.alert('hi')"
     for page_index in pdf_reader.pages:
         page = page_index
         page.Type = PdfName.Page
@@ -37,8 +39,10 @@ def append_js_to_pdf(file_name):
         # page.AA.O = make_js_action(js)
         pdf_writer.addpage(page)
 
+    pdf_writer.write('test.pdf')
+
 
 if __name__ == "__main__":
     # javascript_added = append_js_to_pdf("/home/msirabella/Downloads/forms.pdf")
-    javascript_added = append_js_to_pdf("test.pdf")
+    javascript_added = append_js_to_pdf("out.pdf")
     # javascript_added = append_js_to_pdf("/home/msirabella/Downloads/forms.pdf")

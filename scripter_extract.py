@@ -1,10 +1,21 @@
 #!/usr/bin/env python3
 # vim: set fileencoding=utf-8 :
 
-tmpl = "[ /Subtype /Widget /Rect [{}] /F 4 /FT /Tx /T ({}) bd /Ff 1 24 bitshift /MaxLen {} /ANN pdfmark"
+content = []
+circltmpl = "[ << >> circlebox {x} x {y} y {w} {h} fbox {label} label dict2pdfmark /ANN pdfmark"
+texttmpl = "[ << >> {maxlen} combtext {x} x {y} y {w} {h} fbox {label} label dict2pdfmark /ANN pdfmark"
+start = None
+end = 'None'
+doit = start is None
 for page in range(2, 3):
     scribus.gotoPage(page)
     for item, a, b in scribus.getPageItems():
+        if item == start:
+            doit = True
+        elif item == end:
+            break
+        elif not doit:
+            continue
         if item.startswith('Group'):
             scribus.unGroupObjects(item)
             continue
@@ -13,7 +24,10 @@ for page in range(2, 3):
             continue
         # print(item)
         locals().update({prop: int(scribus.getProperty(item, prop)) for prop in ('xPos', 'yPos', 'width', 'height')})
-        print(tmpl.format(f'{xPos} x {yPos} y {xPos + width} x {yPos + height} y', item, width // 12))
+        if height > 10:
+            print(texttmpl.format(x=xPos, y=yPos, height=height, width=width, label=item, maxlen=width // 12)
+        else:
+            print(circltmpl.format(x=xPos, y=yPos, height=height, width=width, label=item))
 
 # print('hi')
 
