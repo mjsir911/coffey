@@ -5,21 +5,26 @@
 >> def
 
 
+/getField {
+	('\).value) exch
+	(this.getField\(')
+	5 -2 roll 
+	3 -1 roll pushstr
+	3 -1 roll pushstr
+	3 -1 roll pushstr
+} def
+
 /normalize { % returns a string
 	dup operators exch known {
 		operators exch get pushstr
 	} {
 	dup type /nametype eq {
-		pop (something) pushstr
+		bigdict exch exec get unroll (.) join
+		getField
 	} {
 	dup type /arraytype eq {
-			('\)) exch
-			0 get dup length string cvs 
-			(this.getField\(')
-			5 -2 roll 
-			3 -1 roll pushstr
-			3 -1 roll pushstr
-			3 -1 roll pushstr
+		0 get dup length string cvs
+		getField
 	} {
 	dup type /integertype eq {
 		exch dup 3 1 roll cvs length restinterval
@@ -47,7 +52,7 @@
 	exch restinterval
 } def
 
-/autocalc { % {code} autocalc (javascript code)
+/ps2js { % {code} ps2js (javascript code)
   {
 		dup operators exch known {
 		3 -1 roll

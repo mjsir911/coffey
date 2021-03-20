@@ -10,31 +10,48 @@
 
 % border color is CIELAB: L: 65.49, a: 61, b: 39, shade: 18%
 
-[ << >>
-  10 combtext textfield
-  (taxpayer.name.first) label
-  36 97 h 151 18 fbox
-  dict2pdfmark /ANN pdfmark
 
-[ << >>
-  (taxpayer.name.middle_initial) label
-  186 97 h 16 18 fbox
-  1 combtext textfield
-  dict2pdfmark /ANN pdfmark
+[
+  [
+    <<(first) label
+      (Taxpayer's first name) userlabel
+      10 combtext
+      36 97 h 151 18 fbox
+      >> formfield
 
-[ 
-  /Q QRightJustified
-  << >>
-  (taxpayer.name.last) label
-  201 97 h 226 18 fbox
-  15 combtext textfield
-  dict2pdfmark /ANN pdfmark
+    <<(middle_initial) label
+      (M.I.) userlabel
+      186 97 h 16 18 fbox
+      1 combtext
+      >> formfield
 
-[ << >>
-  (taxpayer.ssn) label
-  450 97 h 126 18 fbox
-  9 combtext textfield
-  dict2pdfmark /ANN pdfmark
+    <<(last) label
+      (Last Name) userlabel
+      201 97 h 226 18 fbox
+      15 combtext
+      /Q QRightJustified
+      {1 {taxpayer.name.first} add} autocalc
+      >> formfield dup /marco_test exch def
+  ] <<(name) label parent>> formfield
+
+  <<(ssn) label
+    (Taxpayer's social security number) userlabel
+    450 97 h 126 18 fbox
+    9 combtext
+    {1 1 add} autocalc
+    >> formfield dup /ssn exch def
+] <<(taxpayer) label parent>> formfield orphan
+
+/num_dependants << 8 combtext numtext 450 117 h 126 18 fbox (Polygon3310) label 
+  { marco_test 1 add } autocalc
+>> formfield dup dup orphan
+[ {CO} ssn cvid /APPEND pdfmark
+[ {CO} marco_test cvid /APPEND pdfmark
+[ {CO} 3 -1 roll cvid /APPEND pdfmark
+def
+
+quit
+
 
 % ----------------
 
@@ -525,7 +542,7 @@ showpage
 /dependant_exemptions [ mkobj << >> 5 combtext numtext 569 x 1000 y 63 15 fbox (Polygon3233) label dict2pdfmark /ANN pdfmark def
 [ << >> circlebox 245 x 1031 y 13 5 fbox (Polygon3265) label dict2pdfmark /ANN pdfmark
 [ << >> circlebox 299 x 1031 y 13 5 fbox (Polygon3270) label dict2pdfmark /ANN pdfmark
-quit
+
 /num_dependants [ mkobj << >> 1 combtext numtext 484 x 1020 y 12 16 fbox (Polygon3310) label dict2pdfmark /ANN pdfmark cvlit def
 
 num_dependants == quit

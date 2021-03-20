@@ -72,7 +72,7 @@
 
 
   
-/circlebox { <<
+/circlebox {
   /BS << /S /S /W 1 >>
   /DA ( /ZaDb 0 Tf 0 g )
   /AP << /N << /Off {MoonNotesOff} /Yes {MoonNotes} >> >>
@@ -82,15 +82,15 @@
   /H /P
   /MK << /BC [  0 0 0  ] /CA (n) >>
   /Subtype /Widget
->> deepmerge } def
+} def
 
-/textfield { <<
+/textfield {
   /DA ( /Helv 0 Tf 0 g )
   /Subtype /Widget
   /FT /Tx
   /F 4
   bd
-  >> deepmerge } def
+  } def
 
 /checkchild { <<
   /Ff FfRadio 
@@ -111,23 +111,25 @@
   /Ff FfRadio
   >> deepmerge } def
 
-/combtext { <<
-  /MaxLen counttomark 2 add -1 roll
-  /Ff FfComb
->> deepmerge textfield } def
+/combtext {
+  /MaxLen exch
+  textfield
+  /Ff FfComb % this overwrites previously set bits atm
+} def
 
-/numtext { <<
+/numtext {
   /Q QRightJustified
->> deepmerge } def
+} def
 
 /label {
-  exch dup 3 -1 roll
-  /T exch put
+  /T exch
+} def
+
+/userlabel {
+  /TU exch
 } def
 
 /fbox { % dict x y w h fbox dict
-  5 -1 roll dup 6 2 roll
-
   [ 
     % x & w
     5 -1 roll dup 
@@ -140,7 +142,7 @@
     3 -1 roll exch
   ]
 
-  /Rect exch put
+  /Rect exch
 } def
 
 /dict2pdfmark {
@@ -152,13 +154,18 @@
   % There is a better way!
   % Executable arrays are just arrays with executable names inside
   % (Test) -> {Test}
-  1 array dup 0 4 -1 roll cvn cvx put cvx 
+  dup type /stringtype eq { cvn } if
+  1 array dup 0 4 -1 roll cvx put cvx 
+} def
+
+/randid {
+  rand 10 string cvs cvid
 } def
 
 /mkobj {
   % Want to prefix this if possible
   /_objdef 
-  rand 10 string cvs cvid
+  randid
   dup counttomark 1 add 1 roll
 } def
 
@@ -171,8 +178,111 @@
 
 
 
+% Current big limitation of this is that it can't use objects that aren't
+% globally resolvable already, so can't use siblings or cousins in flight. To
+% get around this manually reference the tag with {squiggly braces}
+/autocalc {
+  /AA << /C << /JS 6 -1 roll ps2js /S /JavaScript >> >>
+} def
+
+
+/unroll { % takes a primitive linked list and unrolls it: [a [b [c [...]]]] unroll [a b c ...]
+  [ exch { dup null eq { pop exit } if dup 0 get counttomark 1 roll 1 get } loop ]
+} def
+
+/join { % string join! [(string) (array)] (.) join (joined.array)
+  exch
+  dup 0 exch { length add 1 add } forall string exch
+  0 exch {
+    3 -1 roll dup dup 5 3 roll
+    exch dup 3 -1 roll
+    dup length
+    exch 3 1 roll
+    add  4 1 roll
+    putinterval
+
+    dup
+    3 1 roll
+    5 -1 roll dup 6 1 roll
+    putinterval
+    1 add
+  } forall
+  1 sub 0 exch getinterval
+  exch pop
+} def
+
+
+/dload {
+  dup { 3 -1 roll } forall
+} def
+
+/deffield {
+  exch dup
+  1 array dup 0 4 -1 roll cvx put cvx
+  3 -1 roll dup /_objdef 4 -1 roll put
+  mark exch dload pop /ANN pdfmark
+} def
+
+/bigdict << >> def
+
+/formfield { % you should probably always do something with the return
+  % handle object reference cleaning
+  dup /_objdef known not {
+    dup /_objdef randid put
+  } if
+  dup /_objdef get 0 get cvlit
+
+  % handle ref -> label mapping
+  exch
+  dup /T known {
+    dup 3 2 roll dup
+    bigdict exch
+    4 -1 roll /T get
+    2 array dup exch 0 4 -1 roll put
+    put
+    exch
+  } if
+
+  % handle reverse mapping the children
+  dup /Kids known {
+    dup /Kids get
+    exch 3 1 roll
+    { exch dup 3 1 roll exch
+      mark exch << /Parent 5 -1 roll cvid >> /PUT pdfmark
+    } forall
+    exch
+  } if
+  % & prepend our name to children's labels
+  dup dup /Kids known exch /T known and {
+    dup /Kids get
+    {
+      0 get cvlit
+      bigdict exch get
+      3 -1 roll dup 4 1 roll
+      bigdict exch get
+      1 exch put
+    } forall
+  } if
+
+  % Create the object
+  mark exch dload pop /ANN pdfmark
+} def
+
+% Aka parent-less, give to the root node
+/orphan { % /formId orphan
+  mark {afields} 3 -1 roll cvid /APPEND pdfmark
+} def
+
+% The opposite of an orphan
+/parent { % [list of /childrenIds] mark .. parent
+  /Kids counttomark 2 add -1 roll [ exch { cvid } forall ]
+  /Subtype /Widget
+} def
+
 % % Somehow the above is created with this but I can't figure it out
 % [/BBox [0 0 1.3 1.3] /_objdef {xCross} /BP pdfmark
 % 0 0 1 setrgbcolor /ZapfDingbats 9.3262 selectfont 2.9515 3.2732 moveto (n) show
 % [/EP pdfmark
+
+
 
