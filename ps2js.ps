@@ -2,16 +2,15 @@
 /operators <<
   /mul ( * )
   /add ( + )
+  /eq ( == )
 >> def
 
 
 /getField {
-	('\).value) exch
-	(this.getField\(')
-	5 -2 roll 
-	3 -1 roll pushstr
-	3 -1 roll pushstr
-	3 -1 roll pushstr
+	exch
+	(this.getField\(') pushstr
+	exch pushstr
+	('\).value) pushstr
 } def
 
 /normalize { % returns a string
@@ -29,7 +28,15 @@
 	dup type /integertype eq {
 		exch dup 3 1 roll cvs length restinterval
 	} {
-		pushstr
+	dup type /stringtype eq {
+		exch
+		(") pushstr
+		exch pushstr
+		(") pushstr
+	} { 
+		(ps2js) /typecheck signalerror
+	}
+	ifelse
 	} ifelse
 	} ifelse
 	} ifelse
@@ -56,7 +63,7 @@
   {
 		dup operators exch known {
 		3 -1 roll
-		100 string dup % hope
+		1000 string dup % hope
 		(\() pushstr
 		3 -1 roll normalize
 		3 -1 roll normalize

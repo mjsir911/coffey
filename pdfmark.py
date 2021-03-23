@@ -14,23 +14,24 @@ r = PdfReader(argv[1] if len(argv) > 1 else 'dor-2020-inc-form-1-nrpy.pdf')
 
 
 def translate(d, objdict):
-    if isinstance(d, postscript.Block):
-        objname, = d
+    if isinstance(d, postscript.ExecutableArray):
+        d = tuple(d)
         return objdict.setdefault(d, IndirectPdfDict())
         # assert len(d) == 1
         # and d[0] == 'MoonNotes':
         # return moon_notes
     elif isinstance(d, dict):
         return PdfDict({translate(k, objdict): translate(v, objdict) for k, v in d.items()})
-    elif isinstance(d, list):
+    elif isinstance(d, (list, postscript.Array)):
         return [translate(item, objdict) for item in d]
     elif isinstance(d, postscript.Name):
         return PdfName(d)
-    elif isinstance(d, bytearray):
-        return d.decode()
+    elif isinstance(d, postscript.String):
+        return str(d)
     elif isinstance(d, bool):
         # Can get rid of this once pdfrw#220 comes through
         return PdfObject('true') if d else PdfObject('false')
+
     return d
 
 ZaDb = r.Root.AcroForm.DR.Font.ZaDb
@@ -62,8 +63,8 @@ class PdfmarkRunner(postscript.Runner):
         self.page = 1
 
         self.objects = {
-            postscript.Block(['Catalog']): catalog,
-            postscript.Block(['ZaDb']): ZaDb,
+            postscript.Array(['Catalog']): catalog,
+            postscript.Array(['ZaDb']): ZaDb,
             # postscript.Block(['MoonNotes']): moon_notes,
             # postscript.Block(['MoonNotesOff']): moon_notes_off,
         }
@@ -71,6 +72,7 @@ class PdfmarkRunner(postscript.Runner):
     def pdfmark_OBJ(self):
         d = self.func_hex_3E3E()
         ref = d.pop(postscript.Name('_objdef'))
+        ref = tuple(ref)
         t = str(d.pop(postscript.Name('type')))
         if t == 'dict' or t == 'stream':
             self.objects.setdefault(ref, IndirectPdfDict())
@@ -84,9 +86,10 @@ class PdfmarkRunner(postscript.Runner):
 
     def pdfmark_PUT(self):
         ref, stuff = self.func_unmark()
+        ref = tuple(ref)
         obj = self.objects.setdefault(ref, IndirectPdfDict())
-        if isinstance(stuff, bytearray):
-            obj.stream = stuff.decode()
+        if isinstance(stuff, postscript.String):
+            obj.stream = str(stuff)
         elif isinstance(obj, dict):
             obj.update(translate(stuff, self.objects))
         else:
@@ -94,6 +97,7 @@ class PdfmarkRunner(postscript.Runner):
 
     def pdfmark_APPEND(self):
         ref, stuff = self.func_unmark()
+        ref = tuple(ref)
         obj = self.objects.setdefault(ref, IndirectPdfDict())
         if isinstance(obj, list):
             obj.append(translate(stuff, self.objects))
@@ -105,10 +109,10 @@ class PdfmarkRunner(postscript.Runner):
 
     def pdfmark_ANN(self):
         annot = self.func_hex_3E3E()
-        ref = annot.pop(postscript.Name('_objdef'), None)
+        ref = tuple(annot.pop(postscript.Name('_objdef'), [None]))
         d = translate(annot, self.objects)
 
-        if ref:
+        if ref is not None:
             if ref in self.objects:
                 self.objects[ref].update(d)
             else:

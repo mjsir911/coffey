@@ -31,7 +31,7 @@
       15 combtext
       /Q QRightJustified
       {1 {taxpayer.name.first} add} autocalc
-      >> formfield dup /marco_test exch def
+      >> formfield
   ] <<(name) label parent>> formfield
 
   <<(ssn) label
@@ -39,179 +39,168 @@
     450 97 h 126 18 fbox
     9 combtext
     {1 1 add} autocalc
-    >> formfield dup /ssn exch def
+    >> formfield
 ] <<(taxpayer) label parent>> formfield orphan
-
-/num_dependants << 8 combtext numtext 450 117 h 126 18 fbox (Polygon3310) label 
-  { marco_test 1 add } autocalc
->> formfield dup dup orphan
-[ {CO} ssn cvid /APPEND pdfmark
-[ {CO} marco_test cvid /APPEND pdfmark
-[ {CO} 3 -1 roll cvid /APPEND pdfmark
-def
-
-quit
-
 
 % ----------------
 
-[ << >>
+<<(spouse.name.first) label
   10 combtext textfield
-  (spouse.name.first) label
   36 133 h 151 18 fbox
-  dict2pdfmark /ANN pdfmark
+  >> formfield orphan
 
-[ << >>
+<<
   (spouse.name.middle_initial) label
   186 133 h 16 18 fbox
   1 combtext textfield
-  dict2pdfmark /ANN pdfmark
+  >> formfield orphan
 
-[ 
+<<
   /Q QRightJustified
-  << >>
   (spouse.name.last) label
   201 133 h 226 18 fbox
   15 combtext textfield
-  dict2pdfmark /ANN pdfmark
+  >> formfield orphan
 
-[ << >>
+<<
   (spouse.ssn) label
   450 133 h 126 18 fbox
   9 combtext textfield
-  dict2pdfmark /ANN pdfmark
+  >> formfield orphan
 
-[ << >>
+<<
   (mailing.address) label
   36 169 h 256 18 fbox
   17 combtext textfield
-  dict2pdfmark /ANN pdfmark
+  >> formfield orphan
 
-[ << >>
+<<
   291 169 h 180 18 fbox
   (mailing.city) label
   12 combtext textfield
-  dict2pdfmark /ANN pdfmark
+  >> formfield orphan
 
-[ << >>
+<<
   (mailing.state) label
   470 169 h 31 18 fbox
   2 combtext textfield
-  dict2pdfmark /ANN pdfmark
+  >> formfield orphan
 
-[ << >>
+
+<<
   5 combtext textfield
   500 169 h 76 18 fbox
   (mailing.zip) label
-  dict2pdfmark /ANN pdfmark
+  >> formfield orphan
 
 /y { 802 exch sub } def
 /x { 99 sub } def
 
-[ << >>
+<<
   17 combtext
   135 x 224 y 255 18 fbox
   (foreign_province) label
-  dict2pdfmark /ANN pdfmark
+  >> formfield orphan
 
-[ << >>
+<<
   12 combtext
   389 x 224 y 181 18 fbox
   (foreign_country) label
-  dict2pdfmark /ANN pdfmark
+  >> formfield orphan
 
-[ << >>
+<<
   7 combtext
   569 x 224 y 106 18 fbox
   (foreign_postal_code) label
-  dict2pdfmark /ANN pdfmark
+  >> formfield orphan
 
 [
-  mark mkobj
-    << >>
+  <<
     237 x 253 y 13 5 fbox
     circlebox
-    checkchild
-    dict2pdfmark
+    checkbox
     /AP << /N << /Off {MoonNotesOff} /Yes3 {MoonNotes} >> >>
-    /ANN pdfmark
-  mark mkobj
-    << >>
+  >> formfield
+  <<
     333 x 253 y 13 5 fbox
     circlebox 
-    checkchild
-    dict2pdfmark
+    checkbox
     /AP << /N << /Off {MoonNotesOff} /Yes2 {MoonNotes} >> >>
-    /ANN pdfmark
-  mark mkobj 
-    << >>
+  >> formfield
+  <<
     434 x 253 y 13 5 fbox
     circlebox
-    checkchild
-    dict2pdfmark
+    checkbox
     /AP << /N << /Off {MoonNotesOff} /Yes1 {MoonNotes} >> >>
-    /ANN pdfmark
-]
+  >> formfield
+] <<(return_status) label parent checkbox>> formfield orphan
 
-[ mkobj
-  << >>
-  checkparent
-  (return_status) label
-  dict2pdfmark
-  /ANN pdfmark
-
-  pop
-
-[ << >>
+/state_fund_taxpayer <<
+  (state_fund_taxpayer) label
   453 x 274 y 13 5 fbox
   circlebox
-  (state_fund_taxpayer) label
-  dict2pdfmark /ANN pdfmark
-[ << >>
+  >> formfield dup orphan def
+
+/state_fund_spouse <<
   533 x 274 y 13 5 fbox
   circlebox 
   (state_fund_spouse) label 
-  dict2pdfmark /ANN pdfmark
-[ mkobj << >>
+  >> formfield dup orphan def
+
+<<(state_fund_total) label 
   1 combtext textfield 
   662 x 263 y 13 16 fbox
-  (state_fund_total) label 
-  dict2pdfmark
-  /AA << /C << /JS (event.target.value = \(this.getField\('state_fund_taxpayer'\).value == "Yes" ? 1 : 0\) + \(this.getField\('state_fund_spouse'\).value == "Yes" ? 1 : 0\) ) /S /JavaScript >> >>
-  /ANN pdfmark
+  {
+    state_fund_taxpayer (Yes) eq state_fund_spouse (Yes) eq add
+    % state_fund_taxpayer (Yes) eq { 1 } { 0 } ifelse 
+    % state_fund_spouse   (Yes) eq { 1 } { 0 } ifelse add
+  } autocalc
+  >> formfield dup orphan
+  % /AA << /C << /JS (event.target.value = \(this.getField\('state_fund_taxpayer'\).value == "Yes" ? 1 : 0\) + \(this.getField\('state_fund_spouse'\).value == "Yes" ? 1 : 0\) ) /S /JavaScript >> >>
+  % /ANN pdfmark
 
-[ {CO} 3 -1 roll /APPEND pdfmark
+[ {CO} 3 -1 roll cvid /APPEND pdfmark
 
-[ << >>
+<<
   circlebox 
   559 x 294 y 13 5 fbox
   (taxpayer.veteran) label 
-  dict2pdfmark /ANN pdfmark
-[ << >>
+  >> formfield orphan
+
+<<
   circlebox 
   629 x 294 y 13 5 fbox
   (spouse.veteran) label 
-  dict2pdfmark /ANN pdfmark
-[ << >>
+  >> formfield orphan
+
+<<
   circlebox 
   559 x 315 y 13 5 fbox
   (taxpayer.deceased) label 
-  dict2pdfmark /ANN pdfmark
-[ << >>
+  >> formfield orphan
+
+<<
   circlebox 
   629 x 315 y 13 5 fbox
   (spouse.deceased) label 
-  dict2pdfmark /ANN pdfmark
-[ << >>
+  >> formfield orphan
+
+
+<<
   circlebox 
   559 x 335 y 13 5 fbox
   (taxpayer.under_18) label 
-  dict2pdfmark /ANN pdfmark
-[ << >>
+  >> formfield orphan
+
+<<
   circlebox 
   629 x 335 y 13 5 fbox
   (spouse.under_18) label 
-  dict2pdfmark /ANN pdfmark
+  >> formfield orphan
+
+quit
+
+
 [ << >>
   circlebox 
   661 x 356 y 13 5 fbox

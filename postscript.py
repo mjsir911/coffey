@@ -4,15 +4,121 @@
 # postscript parser
 
 from typing import *
+from inspect import isfunction
 
 from functools import lru_cache
+from collections import deque, UserString, UserList
 
 from sys import argv
 
 
+T = TypeVar('T')
 
-class PostscriptFunction:
+
+@runtime_checkable
+class Executable(Protocol[T]):
+    def __call__(self, stack):
+        ...
+
+
+class ChildSlice(Generic[T]):
+    parent: T
+    slice: slice
+
+    def __init__(self, backing_array: T, slice=slice(0, None)):
+        self.parent = backing_array
+        assert slice.step is None
+        self.slice = slice
+
+    @staticmethod
+    def _constrain_slice(o, i):
+        return slice(
+            o.start + i.start if i.start is not None else o.start,
+            o.start + i.stop if i.stop is not None else o.stop
+        )
+
+    def _add_slice(self, s):
+        if isinstance(s, int):
+            return self.slice.start + s
+        # assert (self.slice.stop is None) == (s.stop is None), breakpoint()
+        # return self._constrain_slice(self.slice,
+        return slice(
+            self.slice.start + (s.start if s.start is not None else 0),
+            self.slice.start + s.stop if s.stop is not None else None
+        )
+
+    def __hash__(self):
+        return hash(tuple(self))
+
+    def __getitem__(self, index):
+        cls = type(self)
+        index = self._add_slice(index)
+        if isinstance(index, int):
+            return self.parent[index]
+        elif index.start == 0 and index.stop is None:
+            return self
+        return cls(self, self._add_slice(index))
+
+    def __setitem__(self, index, value):
+        index = self._add_slice(index)
+        self.parent[index] = value
+
+    def __iter__(self):
+        return iter(self._unwrap())
+
+    def __len__(self):
+        return (self.slice.stop or len(self.parent)) - self.slice.start
+
+    def _unwrap(self):
+        p = self.parent
+        if isinstance(self.parent, ChildSlice):
+            p = p._unwrap()
+        return p[self.slice]
+
+    def __repr__(self):
+        return repr(self._unwrap())
+
+    def __str__(self):
+        return str(self._unwrap())
+
+    @property
+    def data(self):
+        return self._unwrap()
+
+
+class String(ChildSlice[bytearray], UserString):
+    def __init__(self, back, *args, **kwargs):
+        if isinstance(back, str):
+            back = bytearray(back.encode())
+        super().__init__(back, *args, **kwargs)
+
+    def __setitem__(self, index, value):
+        index = self._add_slice(index)
+        # Gotta do this since bytearray set checks for string type
+        self.parent[index] = iter(value)
+
+    def __repr__(self):
+        return '(' + repr(self._unwrap().decode())[1:-1] + ')'
+
+    def __str__(self):
+        return self._unwrap().decode()
+
+    @property
+    def data(self):
+        return super().data.decode()
+
+
+class Array(ChildSlice[list], UserList):
     pass
+
+
+class ExecutableArray(Array, Executable[Array]):
+    def __call__(self, stack):
+        stack.run(self)
+        return ()
+
+    def __repr__(self):
+        return f'{{{" ".join(str(item) for item in self)}}}'
 
 
 class Name(str):
@@ -20,17 +126,15 @@ class Name(str):
         return '/' + super().__str__()
 
 
-class Block(tuple):
-    def __repr__(self):
-        return f'{{{" ".join(str(item) for item in self)}}}'
-
-
-class PostscriptOtherFunction(PostscriptFunction):
-    def __init__(self, block: Block):
-        self.block = block
-
+class ExecutableName(Name, Executable[Name]):
     def __call__(self, stack):
-        stack(self.block)
+        a = stack.get_func(self)
+        if isinstance(a, Executable):
+            return a(stack)
+        return (a,)
+
+    def __repr__(self):
+        return super().__str__()
 
 
 markStart = object()
@@ -53,7 +157,7 @@ class Runner(list):
     > /cleartomark { unmark pop } def
     """
     globaldict: Dict[str, callable]
-    systemdict: Dict[str, Block]
+    systemdict: Dict[str, Any]
 
     def __init__(self, *args):
         super().__init__(*args)
@@ -70,20 +174,33 @@ class Runner(list):
             if name.startswith('func_')
         }
 
-        self.tokenizer = self.tokenize()
-        next(self.tokenizer)
+        stream = deque()
         for line in self.prelude():
-            for word in self.lex(line):
-                self.tokenizer.send(word)
+            stream.extend(self.lex(line))
+
+        self.run(self.parse(stream))
+        for inst in self.parse(stream):
+            self.run(inst)
+
+    def run(self, code):
+        for thing in code:
+            if isinstance(thing, ExecutableName):
+                a = thing(self)
+                self.extend(a)
+            else:
+                self.append(thing)
 
     def stackify(unbound_func):
         from functools import wraps
         from inspect import signature
 
-        @wraps(unbound_func)
+        # bleh
+        @wraps(unbound_func.__get__(int))
         def wrapper(self):
             func = unbound_func.__get__(self)
             numargs = len(signature(func).parameters)
+            if len(self) < numargs:
+                breakpoint()
             args = [self.pop() for _ in range(numargs)]
             args.reverse()
             return func(*args)
@@ -106,6 +223,11 @@ class Runner(list):
     @staticmethod
     def func_bitshift(a, b):
         return a << b
+
+    @stackify
+    @staticmethod
+    def func_and(a, b):
+        return a and b
 
     #
     # Constants
@@ -144,23 +266,23 @@ class Runner(list):
     @staticmethod
     def func_hex_3D(a):
         " = "
-        if isinstance(a, bytearray):
-            a = a.decode()
         print(a)
 
     @stackify
     @staticmethod
     def func_hex_3D3D(a):
         " == "
-        if isinstance(a, bytearray):
-            a = a.decode()
-        print(a)
+        print(repr(a))
 
     def func_stack(self):
-        print(self)
+        for thing in reversed(self):
+            self.append(thing)
+            self.func_hex_3D()
 
     def func_pstack(self):
-        print(self)
+        for thing in reversed(self):
+            self.append(thing)
+            self.func_hex_3D3D()
 
     def func_breakpoint(self):
         breakpoint()
@@ -171,7 +293,7 @@ class Runner(list):
     @stackify
     @staticmethod
     def func_file(fname, mode):
-        return open(fname.decode(), mode.decode())
+        return (open(str(fname), str(mode)),)
 
     #
     # Mark functions
@@ -194,14 +316,17 @@ class Runner(list):
             return []
         ret = self[-count:]
         self[-count - 1:] = []
-        return ret
+        return Array(ret)
 
     def func_counttomark(self):
         return self[::-1].index(markStart)
 
     def func_hex_3E3E(self):
         " >> "
-        l = iter(self.func_unmark())
+        b = self.func_unmark()
+        if len(b) > 0 and isinstance(b[0], dict):
+            breakpoint()
+        l = iter(b)
         return dict(zip(l, l))
 
     #
@@ -219,17 +344,51 @@ class Runner(list):
         d[key] = val
 
     @stackify
+    @staticmethod
+    def func_get(d: dict, key):
+        return d[key]
+
+    @stackify
     def func_forall(self, obj, proc):
-        if isinstance(obj, (list, tuple)):
-            for item in obj:
-                self.append(item)
-                self.run(proc)
+        if isinstance(obj, (list, UserList)):
+            it = ((i,) for i in obj)
         elif isinstance(obj, dict):
-            for kv in obj.items():
-                self.extend(kv)
-                self.run(proc)
+            it = obj.items()
         else:
-            raise Exception(type(obj))
+            breakpoint()
+            raise TypeError(obj)
+
+        for items in it:
+            self.extend(items)
+            self.run(proc)
+
+    @stackify
+    @staticmethod
+    def func_known(d: dict, k):
+        return k in d
+
+    #
+    # Array functions
+
+    @stackify
+    @staticmethod
+    def func_getinterval(array, start, end):
+        return array[start:start + end]
+
+    @stackify
+    @staticmethod
+    def func_not(b: bool):
+        return not b
+
+    @stackify
+    def func_ifelse(self, cond: bool, a: Executable, b: Executable):
+        """
+        > /if { {} ifelse } def
+        """
+        if cond:
+            return a(self)
+        else:
+            return b(self)
 
     @stackify
     def func_copy(self, d1, d2):
@@ -243,12 +402,17 @@ class Runner(list):
         """
         > /run { (r) file exec } def
         """
-        if isinstance(obj, bytearray):
-            return self.runfile(obj.decode())
+        if isinstance(obj, str):
+            return self.runfile(obj)
         return self.runfile(obj.read())
 
     def func_quit(self):
         raise QuitException()
+
+    @stackify
+    @staticmethod
+    def func_cvlit(thing: Executable[T]) -> T:
+        return thing
 
     @staticmethod
     def func_rand():
@@ -259,20 +423,43 @@ class Runner(list):
 
     @stackify
     @staticmethod
-    def func_cvx(obj):
-        if isinstance(obj, list):
-            return Block(obj)
-        return obj
+    def func_type(thing):
+        if isinstance(thing, Name):
+            return Name('nametype')
+        if isinstance(thing, (str, bytearray, UserString)):
+            return Name('stringtype')
+        elif isinstance(thing, int):
+            return Name('integertype')
+        elif isinstance(thing, (list, Array)):
+            return Name('arraytype')
+        else:
+            raise TypeError(type(thing))
+
+    @stackify
+    @staticmethod
+    def func_eq(a, b):
+        return a == b
+
+    @stackify
+    @staticmethod
+    def func_cvx(obj: T) -> Executable[T]:
+        if isinstance(obj, Array):
+            return ExecutableArray(obj)
+        elif isinstance(obj, Name):
+            return ExecutableName(obj)
+        else:
+            breakpoint()
+            raise TypeError(type(obj))
 
     @stackify
     @staticmethod
     def func_array(l):
-        return [None] * l
+        return Array([None] * l)
 
     @stackify
     @staticmethod
     def func_cvn(s):
-        return Name(s.decode())
+        return Name(s)
 
     #
     # Strings
@@ -285,14 +472,17 @@ class Runner(list):
         """
         Allocate string of length l
         """
-        return bytearray(l)
+        return String(bytearray(l))
 
     @stackify
     @staticmethod
     def func_cvs(obj, buf):
         s = str(obj).encode()
-        buf[:len(s)] = s
-        return bytearray(s)
+        l = len(s)
+        ret = String(buf, slice(0, l))
+        ret[:l] = s
+        # print(repr(ret))
+        return ret
 
     @stackify
     @staticmethod
@@ -301,65 +491,95 @@ class Runner(list):
 
     @stackify
     @staticmethod
-    def func_putinterval(outerstr, offset, innerstr):
-        outerstr[offset:offset + len(innerstr)] = innerstr
+    def func_putinterval(outer, offset, inner):
+        outer[offset:offset + len(inner)] = inner
 
-    def dispatch_func(self, funcname):
+    def get_func(self, funcname):
         if funcname not in self.systemdict:
-            return self.run(self.globaldict[funcname])
+            func = self.globaldict[funcname]
+            return func
         func = self.systemdict[funcname]
-        ret = func()
-        if ret is None:
-            return
-        if type(ret) != tuple:
-            ret = (ret,)
-        self.extend(ret)
-        return ret
 
-    def do_block(self, token):
+        from functools import wraps
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            ret = func()
+            if ret is None:
+                return ()
+            if not isinstance(ret, (tuple, Iterator)):
+                ret = (ret,)
+            return ret
+        return wrapper
+
+    def do_block(self, stream):
         acc = []
-        while True:
+        while stream:
+            token = stream.popleft()
             if token.startswith('{'):
-                token = yield from self.do_block(token[1:])
+                stream.appendleft(token[1:])
+                acc.append(self.do_block(stream))
             elif token.endswith('}'):
                 token = token[:-1]
                 if token != '':
-                    acc.append(token)
+                    # this is gonna cause problems
+                    acc.extend(list(self.parse(deque([token]))))
+                    # acc.append(token)
                 break
-            if token != '':
-                acc.append(token)
-            token = yield
-        return Block(acc)
+            elif token != '':
+                stream.appendleft(token)
+                acc.extend(list(self.parse(stream, False)))
+        return ExecutableArray(acc)
 
-    def tokenize(self):
-        while True:
-            token = yield
-            if isinstance(token, Block):
+    def parse(self, stream, consume=True):
+        while stream:
+            token = stream.popleft()
+            if isinstance(token, Array):
                 # Do nothing
-                self.append(token)
+                yield token
             elif token.isdigit() or token.startswith('-') and token[1:].isdigit():
-                self.append(int(token))
+                yield int(token)
             elif token.startswith('/'):
-                self.append(Name(token[1:]))
+                yield Name(token[1:])
             elif token.startswith('('):
+                # this should all move to lex
+                acc = token[0]
                 depth = 1
-                acc = token
-                if not token.endswith(')'):
-                    # This is currently very broken
-                    while depth > 0:
-                        token = yield
-                        token = token.replace('\\', '')
-                        acc += ' ' + token
-                        if token.startswith('('):
+                stream.appendleft(token[1:])
+                while depth > 0:
+                    line = deque(stream.popleft())
+                    while line:
+                        char = line.popleft()
+                        if char == '\\':  # this will break on \ before newline
+                            acc += line.popleft()
+                            continue
+                        if char == '(':
                             depth += 1
-                        if token.endswith(')'):
+                        elif char == ')':
                             depth -= 1
-                self.append(bytearray(acc[1:-1].encode()))
+                        acc += char
+                    acc += ' '
+                yield String(acc[1:-2])
+
+                # acc = token
+                # if not token.endswith(')'):
+                #     # This is currently very broken
+                #     while depth > 0:
+                #         token = stream.popleft()
+                #         token = token.replace('\\', '')
+                #         acc += ' ' + token
+                #         if token.startswith('('):
+                #             depth += 1
+                #         if token.endswith(')'):
+                #             depth -= 1
+                # yield String(bytearray(acc[1:-1].encode()))
             elif token.startswith('{'):
-                b = yield from self.do_block(token[1:])
-                self.append(b)
+                stream.appendleft(token[1:])
+                yield self.do_block(stream)
             else:
-                self.dispatch_func(token)
+                yield ExecutableName(token)
+                # yield from self.dispatch_func(token)
+            if not consume:
+                break
 
     @staticmethod
     def lex(line: str):
@@ -389,29 +609,23 @@ class Runner(list):
                 if line.startswith('> '):
                     yield line[1:].lstrip()
 
-    def run(self, code):
-        stream = iter(code)
-        tokenizer = self.tokenize()
-        next(tokenizer)
-        for word in stream:
-            tokenizer.send(word)
-
     def runfile(self, lines):
-        tokenizer = self.tokenize()
-        next(tokenizer)
-
+        stream = deque()
         for line in lines.splitlines():
-            for word in line.split():
+            for word in self.lex(line):
                 if word == '%':
                     break
-                tokenizer.send(word)
+                stream.append(word)
+
+        self.run(self.parse(stream))
 
     def __call__(self, code: str):
         try:
             self.runfile(code)
         except QuitException:
             if self:
-                print(f'warning, stack not empty on quit: {self}')
+                # print(f'warning, stack not empty on quit: {self}')
+                pass
 
         return self
 
@@ -421,6 +635,7 @@ if __name__ == '__main__':
     if len(argv) > 1:
         print(r(open(argv[1]).read()))
     else:
+        print(r.globaldict.keys())
         while True:
             r(input('> '))
         # import rlcompleter

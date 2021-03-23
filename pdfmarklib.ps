@@ -92,10 +92,6 @@
   bd
   } def
 
-/checkchild { <<
-  /Ff FfRadio 
-  >> deepmerge } def
-
 /formparent { counttomark 3 add -2 roll  % [list of checkchildren] checkparent
   exch dup 3 1 roll
   % This just sets all the children's parents
@@ -106,10 +102,10 @@
   /Kids counttomark 2 add -1 roll
 >> deepmerge } def
 
-/checkparent { formparent <<
+/checkbox {
   /FT /Btn
   /Ff FfRadio
-  >> deepmerge } def
+} def
 
 /combtext {
   /MaxLen exch
@@ -182,7 +178,8 @@
 % globally resolvable already, so can't use siblings or cousins in flight. To
 % get around this manually reference the tag with {squiggly braces}
 /autocalc {
-  /AA << /C << /JS 6 -1 roll ps2js /S /JavaScript >> >>
+  pop
+  % /AA << /C << /JS 6 -1 roll ps2js /S /JavaScript >> >>
 } def
 
 
@@ -231,9 +228,9 @@
     dup /_objdef randid put
   } if
   dup /_objdef get 0 get cvlit
+  exch
 
   % handle ref -> label mapping
-  exch
   dup /T known {
     dup 3 2 roll dup
     bigdict exch
@@ -257,10 +254,12 @@
     dup /Kids get
     {
       0 get cvlit
-      bigdict exch get
-      3 -1 roll dup 4 1 roll
-      bigdict exch get
-      1 exch put
+      dup bigdict exch known {
+        bigdict exch get
+        3 -1 roll dup 4 1 roll
+        bigdict exch get
+        1 exch put
+      } { pop } ifelse
     } forall
   } if
 
