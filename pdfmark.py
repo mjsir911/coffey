@@ -17,9 +17,6 @@ def translate(d, objdict):
     if isinstance(d, postscript.ExecutableArray):
         d = tuple(d)
         return objdict.setdefault(d, IndirectPdfDict())
-        # assert len(d) == 1
-        # and d[0] == 'MoonNotes':
-        # return moon_notes
     elif isinstance(d, dict):
         return PdfDict({translate(k, objdict): translate(v, objdict) for k, v in d.items()})
     elif isinstance(d, (list, postscript.Array)):
@@ -63,10 +60,8 @@ class PdfmarkRunner(postscript.Runner):
         self.page = 1
 
         self.objects = {
-            postscript.Array(['Catalog']): catalog,
-            postscript.Array(['ZaDb']): ZaDb,
-            # postscript.Block(['MoonNotes']): moon_notes,
-            # postscript.Block(['MoonNotesOff']): moon_notes_off,
+            ('Catalog',): catalog,
+            ('ZaDb',): ZaDb,
         }
 
     def pdfmark_OBJ(self):
@@ -105,7 +100,7 @@ class PdfmarkRunner(postscript.Runner):
             raise Exception(stuff)
 
     def pdfmark_CLOSE(self):
-        self.run(["cleartomark"])
+        self.runline("cleartomark")
 
     def pdfmark_ANN(self):
         annot = self.func_hex_3E3E()
@@ -147,7 +142,6 @@ for mark in pdfmarks:
     if page.Annots is None:
         page.Annots = PdfArray()
     page.Annots.append(mark)
-    r.Root.AcroForm.Fields.append(mark)  # Need to migrate this to the lib eventually
 
 
 # for page, annots in zip(r.pages, pdfmarks):

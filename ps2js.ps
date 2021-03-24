@@ -1,8 +1,28 @@
 % javascript conversion shit
+
+/binary {
+  3 -2 roll
+  exch 5 1 roll
+  4 -1 roll normalize
+  2 -1 roll pushstr
+  2 -1 roll normalize
+} def
+
+/trinary {
+	4 -2 roll
+	exch 6 1 roll
+	7 -1 roll normalize
+	3 -1 roll pushstr
+	4 -1 roll normalize
+	2 -1 roll pushstr
+	2 -1 roll normalize
+} def
+
 /operators <<
-  /mul ( * )
-  /add ( + )
-  /eq ( == )
+	/mul { ( * ) binary }
+	/add { ( + ) binary }
+	/eq  { ( == ) binary }
+	/ifelse  { ( ? ) ( : ) trinary }
 >> def
 
 
@@ -14,30 +34,41 @@
 } def
 
 /normalize { % returns a string
-	dup operators exch known {
-		operators exch get pushstr
-	} {
 	dup type /nametype eq {
-		bigdict exch exec get unroll (.) join
-		getField
+		dup xcheck {
+			bigdict exch exec get unroll (.) join
+			getField
+		} {
+			dup length string cvs
+			getField
+		} ifelse
 	} {
 	dup type /arraytype eq {
-		0 get dup length string cvs
-		getField
+		dup xcheck {
+			exch
+			(\() pushstr
+			exch { normalize } forall
+			(\)) pushstr
+		} {
+			(ps2js) /typecheck signalerror
+		} ifelse
 	} {
 	dup type /integertype eq {
 		exch dup 3 1 roll cvs length restinterval
 	} {
 	dup type /stringtype eq {
-		exch
-		(") pushstr
-		exch pushstr
-		(") pushstr
+		dup xcheck {
+			pushstr
+		} {
+			exch
+			(") pushstr
+			exch pushstr
+			(") pushstr
+		} ifelse
 	} { 
 		(ps2js) /typecheck signalerror
 	}
 	ifelse
-	} ifelse
 	} ifelse
 	} ifelse
 	} ifelse
@@ -60,19 +91,18 @@
 } def
 
 /ps2js { % {code} ps2js (javascript code)
-  {
+	{
 		dup operators exch known {
-		3 -1 roll
-		1000 string dup % hope
-		(\() pushstr
-		3 -1 roll normalize
-		3 -1 roll normalize
-		3 -1 roll normalize
-		(\)) pushstr
-		length exch dup length 3 -1 roll sub 
-		0 exch getinterval
-    } if
-  } forall
+			1000 string dup % hope
+			(\() pushstr
+			% 3 -1 roll
+			3 -1 roll operators exch get exec
+			(\)) pushstr
+			length exch dup length 3 -1 roll sub 
+			0 exch getinterval
+			cvx
+		} if
+	} forall
 	dup length
 	(event.target.value = )
 	dup length
@@ -81,3 +111,7 @@
 	3 -1 roll pushstr
 	pop
 } def
+
+% { /asd (Yes) eq { 1 } { 0 } ifelse /osd (Yes) eq { 1 } { 0 } ifelse add } ps2js =
+% { /asd (Yes) eq { 1 } { 0 } ifelse } ps2js =
+% asd == "Yes" ? ( 1 ) : ( 0 )

@@ -52,12 +52,12 @@ class ChildSlice(Generic[T]):
 
     def __getitem__(self, index):
         cls = type(self)
-        index = self._add_slice(index)
+        off_index = self._add_slice(index)
         if isinstance(index, int):
             return self.parent[index]
-        elif index.start == 0 and index.stop is None:
+        elif off_index.start == 0 and off_index.stop is None:
             return self
-        return cls(self, self._add_slice(index))
+        return cls(self, index)
 
     def __setitem__(self, index, value):
         index = self._add_slice(index)
@@ -95,6 +95,10 @@ class String(ChildSlice[bytearray], UserString):
     def __setitem__(self, index, value):
         index = self._add_slice(index)
         # Gotta do this since bytearray set checks for string type
+        if isinstance(value, type(self)):
+            value = iter(value)
+        if isinstance(value, Name):
+            breakpoint()
         self.parent[index] = iter(value)
 
     def __repr__(self):
@@ -106,6 +110,12 @@ class String(ChildSlice[bytearray], UserString):
     @property
     def data(self):
         return super().data.decode()
+
+
+class ExecutableString(String, Executable[String]):
+    def __call__(self, stack):
+        stack.run(stack.parse(deque(stack.lex(self))))
+        return ()
 
 
 class Array(ChildSlice[list], UserList):
@@ -151,6 +161,10 @@ class QuitException(Exception):
     pass
 
 
+class ExitException(Exception):
+    pass
+
+
 class Runner(list):
     """
     > globaldict /def { globaldict 3 1 roll put } put
@@ -179,10 +193,9 @@ class Runner(list):
             stream.extend(self.lex(line))
 
         self.run(self.parse(stream))
-        for inst in self.parse(stream):
-            self.run(inst)
 
     def run(self, code):
+        code = list(code)
         for thing in code:
             if isinstance(thing, ExecutableName):
                 a = thing(self)
@@ -346,7 +359,7 @@ class Runner(list):
     @stackify
     @staticmethod
     def func_get(d: dict, key):
-        return d[key]
+        return (d[key],)
 
     @stackify
     def func_forall(self, obj, proc):
@@ -391,6 +404,22 @@ class Runner(list):
             return b(self)
 
     @stackify
+    def func_loop(self, block: Executable):
+        while True:
+            try:
+                block(self)
+            except ExitException:
+                break
+
+    @staticmethod
+    def func_exit():
+        raise ExitException("exit")
+
+    @staticmethod
+    def func_null():
+        return (None,)
+
+    @stackify
     def func_copy(self, d1, d2):
         d2.update(d1)
         return d2
@@ -402,17 +431,22 @@ class Runner(list):
         """
         > /run { (r) file exec } def
         """
-        if isinstance(obj, str):
-            return self.runfile(obj)
-        return self.runfile(obj.read())
+        if isinstance(obj, Executable):
+            return obj(self)
+        return self.runlines(obj.read())
 
     def func_quit(self):
         raise QuitException()
 
     @stackify
     @staticmethod
-    def func_cvlit(thing: Executable[T]) -> T:
-        return thing
+    def func_cvlit(obj: Executable[T]) -> T:
+        if isinstance(obj, ExecutableArray):
+            return Array(obj)
+        elif isinstance(obj, ExecutableName):
+            return Name(obj)
+        else:
+            raise TypeError(type(obj))
 
     @staticmethod
     def func_rand():
@@ -447,9 +481,20 @@ class Runner(list):
             return ExecutableArray(obj)
         elif isinstance(obj, Name):
             return ExecutableName(obj)
+        elif isinstance(obj, String):
+            return ExecutableString(obj)
         else:
-            breakpoint()
             raise TypeError(type(obj))
+
+    @stackify
+    @staticmethod
+    def func_xcheck(obj: Union[T, Executable[T]]):
+        return isinstance(obj, Executable)
+
+    @stackify
+    @staticmethod
+    def func_signalerror(something):
+        raise Exception(something)
 
     @stackify
     @staticmethod
@@ -609,7 +654,10 @@ class Runner(list):
                 if line.startswith('> '):
                     yield line[1:].lstrip()
 
-    def runfile(self, lines):
+    def runline(self, line):
+        self.run(self.parse(deque(self.lex(line))))
+
+    def runlines(self, lines):
         stream = deque()
         for line in lines.splitlines():
             for word in self.lex(line):
@@ -621,7 +669,7 @@ class Runner(list):
 
     def __call__(self, code: str):
         try:
-            self.runfile(code)
+            self.runlines(code)
         except QuitException:
             if self:
                 # print(f'warning, stack not empty on quit: {self}')

@@ -65,9 +65,7 @@
   [ {aform} <<
     /SigFlags SignaturesExist
     >> /PUT pdfmark
-  <<
-    /FT /Sig
-  >> exch deepmerge 
+  /FT /Sig
 } def
 
 
@@ -178,12 +176,11 @@
 % globally resolvable already, so can't use siblings or cousins in flight. To
 % get around this manually reference the tag with {squiggly braces}
 /autocalc {
-  pop
-  % /AA << /C << /JS 6 -1 roll ps2js /S /JavaScript >> >>
+  /AA << /C << /JS 6 -1 roll ps2js /S /JavaScript >> >>
 } def
 
 
-/unroll { % takes a primitive linked list and unrolls it: [a [b [c [...]]]] unroll [a b c ...]
+/unroll { % takes a primitive linked list and unrolls it: [a [b [c [...]]]] unroll [c b a ...]
   [ exch { dup null eq { pop exit } if dup 0 get counttomark 1 roll 1 get } loop ]
 } def
 
@@ -262,6 +259,13 @@
       } { pop } ifelse
     } forall
   } if
+
+  dup /AA known { 
+    exch dup
+    3 1 roll
+    [ {CO} 3 -1 roll cvid /APPEND pdfmark
+  } if
+
 
   % Create the object
   mark exch dload pop /ANN pdfmark

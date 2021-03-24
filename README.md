@@ -8,8 +8,6 @@
 
 Ghostscript didn't work unfortunately:
 - strips some important decorations from a pdf (the red outlining for fields)
-- doesn't fill up `/AcroForm/Fields` so pdftk can't detect the form fields
-- if you do hacks to fill the `/Acroform/Fields` array, straight up crashes pdftk
 
 but all the postscript found in the overlay file should be compatible if
 ghostscript ever decides to work better.
@@ -18,6 +16,7 @@ ghostscript ever decides to work better.
 is used ( `/Ff 1 24 bitshift` )
 
 Tools used for testing:
+- lots of ghostscript
 - `qpdf`
 - poppler stuff like `pdffont`
 - mupdf

@@ -30,7 +30,7 @@
       201 97 h 226 18 fbox
       15 combtext
       /Q QRightJustified
-      {1 {taxpayer.name.first} add} autocalc
+      {1 /taxpayer.name.first add} autocalc
       >> formfield
   ] <<(name) label parent>> formfield
 
@@ -151,333 +151,251 @@
   1 combtext textfield 
   662 x 263 y 13 16 fbox
   {
-    state_fund_taxpayer (Yes) eq state_fund_spouse (Yes) eq add
-    % state_fund_taxpayer (Yes) eq { 1 } { 0 } ifelse 
-    % state_fund_spouse   (Yes) eq { 1 } { 0 } ifelse add
+    state_fund_taxpayer (Yes) eq { 1 } { 0 } ifelse 
+    state_fund_spouse   (Yes) eq { 1 } { 0 } ifelse add
   } autocalc
   >> formfield dup orphan
-  % /AA << /C << /JS (event.target.value = \(this.getField\('state_fund_taxpayer'\).value == "Yes" ? 1 : 0\) + \(this.getField\('state_fund_spouse'\).value == "Yes" ? 1 : 0\) ) /S /JavaScript >> >>
-  % /ANN pdfmark
 
-[ {CO} 3 -1 roll cvid /APPEND pdfmark
-
-<<
+<<(taxpayer.veteran) label 
   circlebox 
   559 x 294 y 13 5 fbox
-  (taxpayer.veteran) label 
   >> formfield orphan
 
-<<
+
+<<(spouse.veteran) label 
   circlebox 
   629 x 294 y 13 5 fbox
-  (spouse.veteran) label 
   >> formfield orphan
 
-<<
+<<(taxpayer.deceased) label 
   circlebox 
   559 x 315 y 13 5 fbox
-  (taxpayer.deceased) label 
   >> formfield orphan
 
-<<
+<<(spouse.deceased) label 
   circlebox 
   629 x 315 y 13 5 fbox
-  (spouse.deceased) label 
   >> formfield orphan
 
 
-<<
+<<(taxpayer.under_18) label 
   circlebox 
   559 x 335 y 13 5 fbox
-  (taxpayer.under_18) label 
+  >> formfield orphan
+
+<<(spouse.under_18) label 
+  circlebox 
+  629 x 335 y 13 5 fbox
   >> formfield orphan
 
 <<
-  circlebox 
-  629 x 335 y 13 5 fbox
-  (spouse.under_18) label 
-  >> formfield orphan
-
-quit
-
-
-[ << >>
   circlebox 
   661 x 356 y 13 5 fbox
   (name_change) label 
-  dict2pdfmark /ANN pdfmark
-[ << >>
+  >> formfield orphan
+<<
   circlebox 
   661 x 367 y 13 5 fbox
   (nocustodial_parent) label 
-  dict2pdfmark /ANN pdfmark
-[ << >>
+  >> formfield orphan
+<<
   circlebox 
   661 x 378 y 13 5 fbox
   (schedule_TDS) label 
-  dict2pdfmark /ANN pdfmark
+  >> formfield orphan
 
- 
 [
-  mark mkobj << >>
+  <<
     136 x 409 y 13 5 fbox
     circlebox 
-    checkchild
-    dict2pdfmark
+    checkbox
     /AP << /N << /Off {MoonNotesOff} /Non {MoonNotes} >> >>
-    /ANN pdfmark
+    >> formfield
 
-  mark mkobj << >>
+  <<
     circlebox 
     216 x 409 y 13 5 fbox
-    checkchild
-    dict2pdfmark
+    checkbox
     /AP << /N << /Off {MoonNotesOff} /Part {MoonNotes} >> >>
-    /ANN pdfmark
-  mark mkobj << >>
+    >> formfield
+  <<
     circlebox 
     314 x 409 y 13 5 fbox
-    checkchild
-    dict2pdfmark
+    checkbox
     /AP << /N << /Off {MoonNotesOff} /Both {MoonNotes} >> >>
-    /ANN pdfmark
-  mark mkobj << >>
+    >> formfield
+  <<
     circlebox 
     510 x 409 y 13 5 fbox
-    checkchild
-    dict2pdfmark
+    checkbox
     /AP << /N << /Off {MoonNotesOff} /Composite {MoonNotes} >> >>
-    /ANN pdfmark
-]
+    >> formfield
+] <<(residency_status) label parent checkbox>> formfield orphan
 
-[ mkobj
-  << >>
-  checkparent
-  (residency_status) label
-  dict2pdfmark
-  /ANN pdfmark
-
-  pop
-
-
-[ << >>
+<<
   8 combtext
   450 423 h 101 17 fbox
   (income) label
-  dict2pdfmark 
   /Q QRightJustified
-  /ANN pdfmark
+  >> formfield orphan
 
 
-[ << >>
+<<
   8 combtext
   450 444 h 101 17 fbox
   (gross_income) label
-  dict2pdfmark 
   /Q QRightJustified
-  /ANN pdfmark
-
+  >> formfield orphan
 
 
 [
-  mark mkobj << >> circlebox checkchild 151 x 508 y 15 7 fbox dict2pdfmark /AP << /N << /Off {MoonNotesOff} /Single {MoonNotes} >> >> /ANN pdfmark
-  mark mkobj << >> circlebox checkchild 151 x 519 y 15 7 fbox dict2pdfmark /AP << /N << /Off {MoonNotesOff} /Married_Joint {MoonNotes} >> >> /ANN pdfmark
-  mark mkobj << >> circlebox checkchild 151 x 530 y 15 7 fbox dict2pdfmark /AP << /N << /Off {MoonNotesOff} /Married_Separate {MoonNotes} >> >> /ANN pdfmark
-  mark mkobj << >> circlebox checkchild 151 x 541 y 15 7 fbox dict2pdfmark /AP << /N << /Off {MoonNotesOff} /HoH {MoonNotes} >> >> /ANN pdfmark
-  mark mkobj << >> circlebox checkchild 308 x 541 y 15 7 fbox dict2pdfmark /AP << /N << /Off {MoonNotesOff} /Custodial {MoonNotes} >> >> /ANN pdfmark
-]
+  << circlebox checkbox 151 x 508 y 15 7 fbox /AP << /N << /Off {MoonNotesOff} /Single {MoonNotes} >> >> >> formfield
+  << circlebox checkbox 151 x 519 y 15 7 fbox /AP << /N << /Off {MoonNotesOff} /Married_Joint {MoonNotes} >> >> >> formfield
+  << circlebox checkbox 151 x 530 y 15 7 fbox /AP << /N << /Off {MoonNotesOff} /Married_Separate {MoonNotes} >> >> >> formfield
+  << circlebox checkbox 151 x 541 y 15 7 fbox /AP << /N << /Off {MoonNotesOff} /HoH {MoonNotes} >> >> >> formfield
+  << circlebox checkbox 308 x 541 y 15 7 fbox /AP << /N << /Off {MoonNotesOff} /Custodial {MoonNotes} >> >> >> formfield
+] <<(filing_status) label parent checkbox>> formfield orphan
 
-[ mkobj
-  << >>
-  checkparent
-  (filing_status) label
-  dict2pdfmark
-  /ANN pdfmark
-
-  pop
-
-[ << >>
+<<
   2 combtext textfield
   350 548 h 26 17 fbox
   (resident_start_month) label
-  dict2pdfmark 
   /Q QRightJustified
-  /ANN pdfmark
+  >> formfield orphan
 
-[ << >>
+<<
   2 combtext textfield
   375 548 h 26 17 fbox
   (resident_start_day) label
-  dict2pdfmark 
   /Q QRightJustified
-  /ANN pdfmark
+  >> formfield orphan
 
-[ << >>
+<<
   4 combtext textfield
   400 548 h 51 17 fbox
   (resident_start_year) label
-  dict2pdfmark 
-  /ANN pdfmark
+  >> formfield orphan
 
-[ << >>
+<<
   2 combtext textfield
   475 548 h 26 17 fbox
   (resident_end_month) label
-  dict2pdfmark 
   /Q QRightJustified
-  /ANN pdfmark
+  >> formfield orphan
 
 
-[ << >>
+<<
   2 combtext textfield
   500 548 h 26 17 fbox
   (resident_end_day) label
-  dict2pdfmark 
   /Q QRightJustified
-  /ANN pdfmark
+  >> formfield orphan
 
-[ << >>
+<<
   4 combtext textfield
   525 548 h 51 17 fbox
   (resident_end_year) label
-  dict2pdfmark 
-  /ANN pdfmark
+  >> formfield orphan
 
-[ mkobj << >>
+<<
   3 combtext textfield
   % Can this be autocalculated / autofilled? its a stretch
   (residency_duration) label
   429 568 h 38 17 fbox
-  dict2pdfmark 
+  % { /resident_end_year   /resident_end_month   /resident_end_day   date
+  %   /resident_start_year /resident_start_month /resident_start_day date
+  %   sub 86400000 div round }
+
   /AA << /C << /JS 
-    % (app.alert(new Date(doc.getField('resident_start_year').value, doc.getField('resident_start_month').value + 1, doc.getField('resident_start_day').value\).getYear()\)) 
     ( event.target.value=Math.floor\(
       \(\(new Date\(this.getField\('resident_end_year'\).value, this.getField('resident_end_month').value - 1, this.getField('resident_end_day').value\)\) -
       \(new Date\(this.getField('resident_start_year').value, this.getField('resident_start_month').value - 1, this.getField('resident_start_day').value\)\)\)
       / 86400000
     \)) 
   /S /JavaScript >> >>
-  % /AA << /V << /JS (this.getField('residency_duration_ratio').value = event.value / 365) /S /JavaScript >> >>
-  % /AA << /V << /JS (this.calculate = true) /S /JavaScript >> >>
   /Q QRightJustified
-  /ANN pdfmark
+  >> formfield dup orphan
 
-[ {CO} 3 -1 roll /APPEND pdfmark
-
-[ mkobj << >>
+<<
   (residency_duration_ratio) label
   4 combtext textfield
   525 568 h 51 17 fbox
-  dict2pdfmark 
+  % probably to complicated to compile from postscript
   /AA << /C << /JS (event.target.value = \(this.getField('residency_duration').value / 365\).toFixed(4).split(".") [1] ) /S /JavaScript >> >>
   /Q QRightJustified
-  /ANN pdfmark
-
-[ {CO} 3 -1 roll /APPEND pdfmark
+  >> formfield orphan
 
 [
   [ 
-    mark mkobj << >>
+    <<
       (month) label
       textfield
       249 686 h 15 15 fbox
-      dict2pdfmark
       /Q QCenterJustified
-      /ANN pdfmark
+      >> formfield
 
-    mark mkobj << >>
+    <<
       (day) label
       textfield
       269 686 h 15 15 fbox
-      dict2pdfmark
       /Q QCenterJustified
-      /ANN pdfmark
+      >> formfield
 
-    mark mkobj << >>
+    <<
       (year) label
       textfield
       287 686 h 25 15 fbox
-      dict2pdfmark
       /Q QCenterJustified
-      /ANN pdfmark
-  ]
-
-  mark mkobj
-    << >>
-    formparent
-    (date) label
-    dict2pdfmark
-    /ANN pdfmark
+      >> formfield
+  ] <<(date) label parent>> formfield
 ]
-
-mark mkobj << >>
-  (signature) label
-  formparent
+<<(signature) label
+  parent
   textfield
   signature
   80 678 h 167 22 fbox
-  dict2pdfmark
-  /ANN pdfmark
-  pop
+  >> formfield orphan
 
 [
   [ 
-    mark mkobj << >>
-      (month) label
+    <<(month) label
       textfield
+      2 combtext numtext
       521 686 h 15 15 fbox
-      dict2pdfmark
-      /Q QCenterJustified
-      /ANN pdfmark
+      >> formfield
 
-    mark mkobj << >>
-      (day) label
+    <<(day) label
       textfield
+      2 combtext numtext
       541 686 h 15 15 fbox
-      dict2pdfmark
-      /Q QCenterJustified
-      /ANN pdfmark
+      >> formfield
 
-    mark mkobj << >>
-      (year) label
+    <<(year) label
       textfield
+      4 combtext numtext
       559 686 h 25 15 fbox
-      dict2pdfmark
-      /Q QCenterJustified
-      /ANN pdfmark
-  ]
-
-  mark mkobj
-    << >>
-    formparent
-    (date) label
-    dict2pdfmark
-    /ANN pdfmark
-]
-
-mark mkobj << >>
-  (spouse.signature) label
-  formparent
+      >> formfield
+  ] <<(date) label parent>> formfield
+] <<(spouse.signature) label
+  parent
   textfield
   signature
   358 678 h 162 22 fbox
-  dict2pdfmark
-  /ANN pdfmark
-  pop
+  >> formfield orphan
 
-mark << >>
+<<
   (email) label
   textfield
   107 703 h 312 22 fbox
-  dict2pdfmark
-  /ANN pdfmark
+  >> formfield orphan
 
-mark << >>
+<<
   (phone) label
   textfield
   493 703 h 88 22 fbox
-  dict2pdfmark
-  /ANN pdfmark
+  >> formfield orphan
+
+quit
 
 showpage
 
