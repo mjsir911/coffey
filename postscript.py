@@ -242,6 +242,21 @@ class Runner(list):
     def func_and(a, b):
         return a and b
 
+    @stackify
+    @staticmethod
+    def func_or(a, b):
+        return a | b
+
+    @stackify
+    @staticmethod
+    def func_min(a, b):
+        return a if a < b else b
+
+    @stackify
+    @staticmethod
+    def func_neg(a):
+        return -a
+
     #
     # Constants
     @staticmethod
@@ -362,6 +377,10 @@ class Runner(list):
         return (d[key],)
 
     @stackify
+    def func_astore(self, l: list):
+        self.extend(l)
+
+    @stackify
     def func_forall(self, obj, proc):
         if isinstance(obj, (list, UserList)):
             it = ((i,) for i in obj)
@@ -466,6 +485,8 @@ class Runner(list):
             return Name('integertype')
         elif isinstance(thing, (list, Array)):
             return Name('arraytype')
+        elif isinstance(thing, type(None)):
+            return Name('nulltype')
         else:
             raise TypeError(type(thing))
 

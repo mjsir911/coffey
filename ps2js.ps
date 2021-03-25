@@ -1,117 +1,124 @@
 % javascript conversion shit
 
+/join { % string join! [(string) (array)] (.) join (joined.array)
+	exch
+	[ exch { 3 -1 roll dup } forall pop pop]
+	dup 0 exch { length add } forall string 
+	dup 3 -1 roll
+	0 exch { 
+		dup length
+		4 1 roll
+		exch dup 4 1 roll exch
+		putinterval
+		add
+		exch dup 3 -1 roll
+	} forall
+	pop
+	pop
+} def
+
+
+/unary {
+	counttomark 2 add -1 roll ps2js
+	% operator is already on stack
+} def
+
 /binary {
-  3 -2 roll
-  exch 5 1 roll
-  4 -1 roll normalize
-  2 -1 roll pushstr
-  2 -1 roll normalize
+	counttomark 3 add -1 roll ps2js
+	exch % operator
+	counttomark 2 add -1 roll ps2js
 } def
 
 /trinary {
-	4 -2 roll
-	exch 6 1 roll
-	7 -1 roll normalize
-	3 -1 roll pushstr
-	4 -1 roll normalize
-	2 -1 roll pushstr
-	2 -1 roll normalize
+	counttomark 4 add -1 roll ps2js
+	3 -1 roll % operator
+	counttomark 3 add -1 roll ps2js
+	4 -1 roll % operator
+	counttomark 2 add -1 roll ps2js
+} def
+
+/function {
+	(\() exch
+	counttomark
+	[ exch
+	counttomark add
+	3 -1 roll dup
+	3 -1 roll add
+	exch neg roll
+	] (, ) join
+	(\))
+} def
+
+/attribute {
+	counttomark 2 add -1 roll
+	ps2js
+	exch
 } def
 
 /operators <<
 	/mul { ( * ) binary }
 	/add { ( + ) binary }
+	/sub { ( - ) binary }
 	/eq  { ( == ) binary }
+	/or  { ( || ) binary }
 	/ifelse  { ( ? ) ( : ) trinary }
+	/value= { (event.target.value = ) unary }
+	/this.getField { (this.getField) 1 function }
+	/min  { (Math.min) 2 function }
+	/max  { (Math.max) 2 function }
+	/cvi { (Number) 1 function }
+	/.value { (.value) attribute }
+	/event.target { (event.target) }
+	/.name { (.name) attribute }
 >> def
 
-
-/getField {
-	exch
-	(this.getField\(') pushstr
-	exch pushstr
-	('\).value) pushstr
-} def
-
-/normalize { % returns a string
+% This might be better as a big lookup table
+/ps2js {
+	dup type /arraytype eq {
+		dup xcheck {
+			{ dup operators exch known {
+				% this is where the magic happens
+				[ 
+					(\()
+					3 -1 roll operators exch get exec 
+					(\))
+				] () join cvx
+			} {
+				ps2js
+			} ifelse } forall
+		} {
+		} ifelse
+	} {
 	dup type /nametype eq {
 		dup xcheck {
 			bigdict exch exec get unroll (.) join
-			getField
+			ps2js
 		} {
-			dup length string cvs
-			getField
+			dup length string cvs ps2js
 		} ifelse
-	} {
-	dup type /arraytype eq {
-		dup xcheck {
-			exch
-			(\() pushstr
-			exch { normalize } forall
-			(\)) pushstr
-		} {
-			(ps2js) /typecheck signalerror
-		} ifelse
+		[ operators /this.getField get exec ] () join cvx
+		[ operators /.value get exec ] () join cvx
 	} {
 	dup type /integertype eq {
-		exch dup 3 1 roll cvs length restinterval
+		10 string cvs
 	} {
 	dup type /stringtype eq {
 		dup xcheck {
-			pushstr
+			% tagged string, already processed
 		} {
-			exch
-			(") pushstr
-			exch pushstr
-			(") pushstr
+			[ (") 3 -1 roll (") ] () join
 		} ifelse
-	} { 
-		(ps2js) /typecheck signalerror
-	}
-	ifelse
+	} {
+	dup type /nulltype eq {
+		pop (null) cvx
+	} {
+		type
+		pstack quit
+		type /typecheck signalerror
 	} ifelse
 	} ifelse
 	} ifelse
+	} ifelse
+	} ifelse
+	cvx
 } def
-
-/restinterval { % str start restinterval (substr to end)
-	exch
-	dup length
-	3 -1 roll dup
-	3 1 roll sub
-	getinterval
-} def
-
-/pushstr { % buf newstr pushstr shiftbuf
-	dup length
-	3 -1 roll dup
-	4 -1 roll
-	0 exch putinterval
-	exch restinterval
-} def
-
-/ps2js { % {code} ps2js (javascript code)
-	{
-		dup operators exch known {
-			1000 string dup % hope
-			(\() pushstr
-			% 3 -1 roll
-			3 -1 roll operators exch get exec
-			(\)) pushstr
-			length exch dup length 3 -1 roll sub 
-			0 exch getinterval
-			cvx
-		} if
-	} forall
-	dup length
-	(event.target.value = )
-	dup length
-	3 -1 roll add string dup
-	3 -1 roll pushstr
-	3 -1 roll pushstr
-	pop
-} def
-
-% { /asd (Yes) eq { 1 } { 0 } ifelse /osd (Yes) eq { 1 } { 0 } ifelse add } ps2js =
-% { /asd (Yes) eq { 1 } { 0 } ifelse } ps2js =
-% asd == "Yes" ? ( 1 ) : ( 0 )

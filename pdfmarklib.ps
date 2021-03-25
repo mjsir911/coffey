@@ -184,26 +184,6 @@
   [ exch { dup null eq { pop exit } if dup 0 get counttomark 1 roll 1 get } loop ]
 } def
 
-/join { % string join! [(string) (array)] (.) join (joined.array)
-  exch
-  dup 0 exch { length add 1 add } forall string exch
-  0 exch {
-    3 -1 roll dup dup 5 3 roll
-    exch dup 3 -1 roll
-    dup length
-    exch 3 1 roll
-    add  4 1 roll
-    putinterval
-
-    dup
-    3 1 roll
-    5 -1 roll dup 6 1 roll
-    putinterval
-    1 add
-  } forall
-  1 sub 0 exch getinterval
-  exch pop
-} def
 
 
 /dload {
